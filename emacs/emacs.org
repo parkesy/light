@@ -1,3 +1,15 @@
+In this document I plan to have my current working .emacs file. This will be important for people who actually want to run my .org files and see the output for themselves.
+
+#+begin_src sh :results output
+cp ~/.emacs ~/light/emacs/.emacs
+#+end_src 
+
+#+begin_src sh :results output
+cat ~/.emacs
+#+end_src
+
+#+RESULTS:
+#+begin_example
 ;; package manager set up
 (package-initialize)
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
@@ -119,3 +131,4 @@
 ;; VIM
 (require 'evil)
 (evil-mode 1)
+#+end_example
