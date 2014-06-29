@@ -1,1 +1,2 @@
-* TODO bring over old learning work form other computer
+* TODO finish client server for sh project's c++ application of shared FIFO files
+
