@@ -13,15 +13,15 @@ done
 #+end_src
 
 #+RESULTS:
-1 projects in the [[file:c++][c++]] directory
-0 projects in the [[file:emacs][emacs]] directory
-1 projects in the [[file:lisp][lisp]] directory
-1 projects in the [[file:lisp+c++][lisp+c++]] directory
-1 projects in the [[file:networking][networking]] directory
-1 projects in the [[file:python][python]] directory
-0 projects in the [[file:R][R]] directory
-1 projects in the [[file:R+c++][R+c++]] directory
-1 projects in the [[file:sh][sh]] directory
+| 1 projects in the [[file:c++][c++]] directory        |
+| 3 projects in the [[file:emacs][emacs]] directory      |
+| 1 projects in the [[file:lisp][lisp]] directory       |
+| 1 projects in the [[file:lisp+c++][lisp+c++]] directory   |
+| 1 projects in the [[file:networking][networking]] directory |
+| 1 projects in the [[file:python][python]] directory     |
+| 0 projects in the [[file:R][R]] directory          |
+| 1 projects in the [[file:R+c++][R+c++]] directory      |
+| 1 projects in the [[file:sh][sh]] directory         |
 
 
 ** Setup
