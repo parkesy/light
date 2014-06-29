@@ -1,0 +1,61 @@
+In this document I'll be looking into unix FIFO files
+
+* What is a FIFO file (Named Pipe)?
+A Named Pipe is also know as a FIFO file. It is an extention of the tradional pipe concept in unix. They are used to assist inter-process communication.
+
+In the below example will create a named pipe attach gzip to it and pipe things into the file and it will be zipped up.
+#+begin_src sh
+mkfifo /tmp/my_pipe
+gzip -9 -c < /tmp/my_pipe > /tmp/out.gz &
+
+echo "Hello world" > /tmp/my_pipe
+rm /tmp/my_pipe
+
+gunzip /tmp/out.gz
+
+cat /tmp/out
+rm /tmp/out
+#+end_src
+
+#+RESULTS:
+: Hello world
+
+
+* So can we use these in c++ applications?
+Sure. What we will do is create an application that will create two pipes. One for reading the other for writing.
+
+#+begin_src C++ :flags -std=c++11
+#include <iostream>
+#include <fstream>
+#include <cstring>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>  
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int main()
+{
+   const std::string outPipeName="/tmp/toClient.pipe";
+   const std::string inPipeName="/tmp/toServer.pipe";
+
+   mkfifo(outPipeName.c_str(), 0666);
+   mkfifo(inPipeName.c_str(), 0666);
+  
+   std::ifstream fin;
+   fin.open(inPipeName.c_str(), std::ios::in);
+   std::ofstream fout;
+   fout.open(outPipeName.c_str(), std::ios::out);
+
+   fin.close();
+   fout.close();
+
+   unlink(outPipeName.c_str());
+   unlink(inPipeName.c_str());
+}
+#+end_src 
+
+#+RESULTS:
+

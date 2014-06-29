@@ -1,0 +1,162 @@
+[[file:img/exchange.jpg]]
+I'd like to build a simply stock market exchange. 
+* Disclaimer
+I'm a C++ developer by trade with 4+ years of High frequency trading strategy development experience. I won't be using c++ do build this exchange although, I'd really like to. In an effort to get a basic exchange working quickly I'm going to use python. To me it is reasonable as my personal time is limited and I don't want to get bogged down. I've heard a lot about python and its ability to whip up solutions. So lets put it to the test.
+
+* What is the output of an exchange
+** Market Data
+Market data is made up of a two basic message types
+*** Order book updated
+Order book updates usually are either diff based or a full picture of the order book.
+***** Diff based order book updates
+These are nifty for saving transmission time. The exchange can provide more data in per second if it has implemented this feature. The downside is that they still need to support the idea of a full picture update. This is because some clients might have missed out on reading an update and will need to refresh. The client could wait until all visible levels have been naturally refreshed by diffs and then continue, or they could request an full picture update. Some exchanges even provide a stream of full picture updates, that clients can use to catch up with, these are usually periodic and slow (better than refreshing naturally though).
+***** Full picture order book updates
+This means that all visible levels are transmitted to the clients. Some exchanges only show the top 2,5 or 10 levels of the order book.
+*** Instrument Traded
+These messages are usually sent out to the clients when an trade has occured on a level of an instrument. The typical information you will see would be X volume traded on instrument Y at price Z. But what does that mean? What does it mean if I see 10 volume trade on BHP at 65.5. Well it can mean one of two things. Either:
+- 1 Trade occurred trading exactly 10 volume to N counter parties (where N is less than or equal to 10) on instrument BHP at price 65.5. or,
+- 1 Trade occurred trading with exactly 1 counter party for 10 volume on instrument BHP at price 65.5.
+Some markets differ in implementation but it appears that the best way to disseminate information is via UDP.
+** Execution Data
+Execution data coming out of an exchange is to do with the result order operations. There are three primitive operations you can do to an order
+*** Insert Order acknowledged | successful | rejected
+Orders Insert messages can be acknowledged by the exchange. This is simply saying that we have gotten your message and your message will be processed shortly (if not already). Successful; means that your order has been successfully placed in the market. Rejected; means that the order was not place in the market. Reasons for this might be that the instrument is closed, the order price violates some rules, the message is corrupt or incorrect. etc
+*** Cancel Order acknowledged | successful | rejected 
+Order Cancel messages can be acknowledge by the exchange. Successful; means that the order was cancelled, no trades will occur on a cancelled order. Rejected; you were unable to cancel your order. The reasons for this might be that you have breached your transaction limit, your order might have been fully traded out, your order might not even exist, and there are lots of other reasons.
+*** Amend Order  acknowledged | successful | rejected
+Order Amend messages can be acknowledge by the exchange. Successful; means that the order has been amend to match the desire of the sent message. Rejected; The reasons for this might be that you have breached your transaction limit, your order might have been fully traded out, your order might not even exist, and there are lots of other reasons.
+
+There is a few more operations to capture here as well.
+*** Order Traded
+Means; An order that you have placed in market has been traded. The volume remaining feild will be adjusted to show what volume you are showing in the market.
+*** Order Eliminated
+Means; An order that you have placed in market has been removed by the exchange. This often happens when the remaining volume reaches zero. There are other times when this happens but I'll leave those for now.
+
+Execution data is inherently private and as such is transmitted over TCP.
+** Instrument/Market Information Data (optional)
+This information is largely to do with static data; Data that doesn't change intraday. You could expect to see a list of today's trade-able instruments, their close price and their tick table rules.
+* What is the input into an exchange
+** Order messages
+*** Order Insert
+**** Order style
+**** Time duration
+*** Order Cancel
+*** Order Amend
+** Log in data
+* What is the process in an exchange
+** First: take a selection of messages from the clients
+What does this mean? how do we do this fairly?
+*** Ideally FIFO
+But how do you make sure its fifo?
+
+** Second: service order messages
+As each message is read you must execute it immediately against the order book.
+** Third: dispatch private trade data
+** Forth: dispatch public trade data and new depth updates
+* An instrument and its order book
+So what is an instrument and what is its order book. So an [[link:http://en.wikipedia.org/wiki/Financial_instrument][financial instrument]] is some tradable asset and an[[link:http://en.wikipedia.org/wiki/Order_book_(trading)][ Order book]] is a list of order that describe the interest of buyers and sellers. From a clients perspective an order book could look like this.
+| Bid Volume | Price | Ask Volume |
+|------------+-------+------------|
+|            |  10.1 |       1000 |
+|            |  10.0 |         50 |
+|        300 |   9.9 |            |
+|       1000 |   9.8 |            |
+This order book lacks a few details:
+** The instrument that owns this order book
+Each instrument will have its own order book.
+** The number of orders on each level
+The volume does not represent the number of orders that are on each price level. its is possible that at price 9.9 there is 1 order for 300 volume or 300 order for 1 volume. The meaning is vastly different - But I'm not going to go into why.
+On some exchanges to volume shown might not even be the total volume tradable at that level. There are orders such as Iceberg order to only show some of the orders volume (lets say 10%) and the rest say hidden until the market starts trading at that price and finds that the level has more volume than is shown.
+** Counter parties
+You'll probably never get this info. Unless you are trading on strange exchanges.
+* An instrument and its order book - code							 :Python:
+So we need a simple representation of this idea. There are a number of ways to represent the order book:
+** A map of Prices (doubles) to queue of orders
+** A map of Price (double) to level.
+Where level is some smart object that can identify when an order of another type has been inserted and can generate a trade. The problem with this is that when an order crosses deep into the order book (i.e. an order hits deeper than the top level of the order book) the level might generate a trade for its price but in reality the trade should be for the top of the order book. For example: see the order book listed [[An instrument and its order book][here]], if an sell order for 9.8 is submitted then the order should trade at 9.9, similarly if a buy order for 10.1 is submitted then the order should trade at 10.0. 
+** Two queues of order levels
+The buy queue and the sell queue. New orders are submitted into their respective queues in order of arrival. A manager will then uncross the queues. So lets say this is the result of first iteration of populating the queues. 
+| Bid Volume | Price | Ask Volume |
+|------------+-------+------------|
+|            |  10.1 |       1000 |
+|         20 |  10.0 |         50 |
+|        300 |   9.9 |         25 |
+|       1000 |   9.8 |            |   
+The next job is to uncross the order book. This will result in trades being published. So 20 volume will trade at 10.0 and 25 volume will trade at 9.9. Public trade feeds will be published along with privet trade messages to the relevant counter parties. The order book will be updated and the resulting order book will look like this.
+| Bid Volume | Price | Ask Volume |
+|------------+-------+------------|
+|            |  10.1 |       1000 |
+|            |  10.0 |         30 |
+|        275 |   9.9 |            |
+|       1000 |   9.8 |            |
+Now there is some ordering issues here. We could argue that when uncrossing the book that the 20 buy orders should have been match with the 25 sell orders at price 9.9 or that 20 of the 25 sell orders should have been traded at 10.0. Remember that we said that crossing order should have the best possible price given to them. But, I believe this is the exception. Firstly how do we decide who should trade where? and secondly is it fair? 
+
+On the first question. Well we could use some of the indicative price rules to determine at which price the orders should match. So lets quickly look at that - I'm going to use the sensible ASX rules of which I am familiar. First we need to match as much volume as we can at some price. This leaves us with 2 candidate prices 10.0 and 9.9 there is 20 volume that would match at 10.0 and there is 25 volume that would match at 9.9. The higher volume at a price determins the matching price. So this would mean that all the orders would match at 9.9... Great right. ere is the resulting order book:
+| Bid Volume | Price | Ask Volume |
+|------------+-------+------------|
+|            |  10.1 |       1000 |
+|            |  10.0 |         50 |
+|        295 |   9.9 |            |
+|       1000 |   9.8 |            |
+
+Is this fair... Maybe... I'm not sure. The 20 crossing buy orders just jumped the order queue to get filled at 9.9 in front of 300 volume. If I was the 295 order I'd be very frustrated! 
+
+What if we try to match as few volume as we can. This would mean that the first 20 order trade at 10.0 and the rest trade at 9.9. The order book would look exactly the same but the 20 crossing buy order got filled at 10.0 which is bad for them and the remaining sell orders traded at 9.9 which is bad for them. 
+
+Is this fair... Maybe... I'm not sure. 20 of the crossing sell order just jump the queue and got filled in front of 50 people. I would be angry if I was waiting on the offer an didn't get filled.
+*** Solution
+I think I'll go for the first solution it is equally fair for all sides of the market. No advantage is given for luckily crossing at the right time.
+
+*** Co| Bid Volume | Price | AskVolume |
+|------------+-------+-----------|
+|            |  10.1 |      1000 |
+|            |  10.0 |        50 |
+| 295        |   9.9 |           |
+| 1000       |   9.8 |           |de															 :Python:
+
+#+begin_src python :tangle src/orderbook.py
+
+# exchange order book 
+import heapq
+
+class Order:
+    def __init__(self, volume, price, side, clientId):
+        self.volume = volume
+        self.price = price
+        self.side = side
+        self.clientId
+
+    @
+    def get_volume(self):
+        self.
+
+/class Orderbook:
+    def __init__ (self):
+        self.buy_queue =  
+        pass
+    def add_order(self, volume, price, side, clientId):
+        pass
+#+end_src 
+
+#+begin_src python :results output :tangle src/test-orderbook.py
+import unittest
+
+from python.exchange import orderbook
+
+class testOrderbook(unittest.TestCase):
+    def setUp(self):
+        self.orderbook = orderbook.Orderbook()
+       
+    def test_basic(self):
+        self.orderbook.add_order(100, 101, SELL, 123)
+
+if __name__ == '__main__':
+    unittest.main()
+#+end_src
+
+#+begin_src sh :results output
+cat src/test-orderbook.py | python -
+#+end_src
+
+#+RESULTS:a
+

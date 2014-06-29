@@ -1,0 +1,110 @@
+I want to take a quick deep dive into [[link:http://en.wikipedia.org/wiki/User_Datagram_Protocol][UDP]] communication.
+
+* What is UDP communication
+User Datagram Protocol (aka Unreliable Datagram Protocol) is a communication protocol that is heavily used in streaming content: VOIP, Youtube, Games etc.
+The protocol does not give you assurances that the message was sent but it is easy to use and scale-able.
+
+* What does a listening client look like in code?	:Client:UDP:Python:Boost:
+In python a simple echo program looks like this. It simply binds to a port and starts listening for incoming data. Any data received is simply dumped to the screen.
+#+begin_src python :tangle yes :tangle src/listening.py
+import socket
+port = 5000
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind(("", port))
+print "waiting on port:", port
+while 1:
+    data, addr = s.recvfrom(1024)
+    print data
+#+end_src 
+
+Run like this:
+#+begin_src sh :results output
+python python/Udp/listening.py&
+echo "Hello world" | ncat localhost 5000 -u
+#+end_src
+
+This is the equivalent code for c++ using boost. 
+#+begin_src cpp :flags -std=c++11 -L/usr/lib/i386-linux-gnu/ -lboost_system -lpthread :tangle yes :tangle src/listener.cpp
+#include <iostream>
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
+
+using boost::asio::ip::udp;
+
+int main(int argc, char* argv[])
+{
+  try
+  {
+    if (argc != 3)
+    {
+      std::cerr << "Usage: client <host> <port>" << std::endl;
+      return 1;
+    }
+
+    boost::asio::io_service io_service;
+
+    udp::endpoint local_endpoint = boost::asio::ip::udp::endpoint(
+	  boost::asio::ip::address::from_string(argv[1]), boost::lexical_cast<int>(argv[2]));
+    std::cout << "Local bind " << local_endpoint << std::endl;
+ 
+    udp::socket socket(io_service);
+    socket.open(udp::v4());
+    socket.bind(local_endpoint);
+
+    boost::array<char, 128> recv_buf;
+    
+    udp::endpoint sender_endpoint;
+    while(1)
+    {
+        size_t len = socket.receive_from(
+            boost::asio::buffer(recv_buf), sender_endpoint);
+
+        std::cout.write(recv_buf.data(), len);
+    }
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << e.what() << std::endl;
+  }
+
+  return 0;
+}
+#+end_src
+
+* What does a writing client look like in code?
+This python program sends messages via UDP. Its exactly like what was happening with ncat.
+#+begin_src python :tangle yes :tangle src/sender.py
+import socket
+import sys
+ 
+# create dgram udp socket
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+except socket.error:
+    print 'Failed to create socket'
+    sys.exit()
+ 
+host = 'localhost';
+port = 5000;
+ 
+while(1) :
+    msg = raw_input('Enter message to send : ')
+     
+    try :
+        #Set the whole string
+        s.sendto(msg, (host, port))
+         
+        # receive data from client (data, addr)
+        d = s.recvfrom(1024)
+        reply = d[0]
+        addr = d[1]
+         
+        print 'Server reply : ' + reply
+     
+    except socket.error, msg:
+        print 'Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+        sys.exit()
+#+end_src
+
+Need c++ example

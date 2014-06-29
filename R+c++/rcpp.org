@@ -1,0 +1,109 @@
+In this document I'll be experimenting with Rcpp and some c++ techniques.
+
+* Test application: Create a .so to load into R.		:R:Rcpp:Cpp::Dynamic:
+So first off we will create a simple cpp with a couple of token function.
+
+#+begin_src cpp :tangle yes :tangle cpp/Rcpp/helloworld.cpp
+#include <iostream>
+#include <Rcpp.h>
+
+RcppExport SEXP test()
+{
+    return Rcpp::wrap("Hello world");
+}
+
+RcppExport SEXP add(SEXP lhs, SEXP rhs)
+{
+    return Rcpp::wrap(Rcpp::as<int>(lhs) + Rcpp::as<int>(rhs));
+}
+#+end_src
+
+Next we build the .so
+#+begin_src sh :results output
+g++ -c cpp/Rcpp/helloworld.cpp -o cpp/Rcpp/helloworld.o -I /home/parkesy/R/i686-pc-linux-gnu-library/3.0/Rcpp/include/ -I /usr/share/R/include/ && g++ -shared cpp/Rcpp/helloworld.o -o cpp/Rcpp/helloworld.so && echo "Done" 
+#+end_src
+
+#+RESULTS:
+: Done
+
+Then we can execute these new functions once they are loaded into R via dyn.load
+#+begin_src R :results output
+library(Rcpp)
+dyn.load('cpp/Rcpp/helloworld.so')
+.Call("test")
+.Call("add", 1, 5)
+#+end_src
+
+#+RESULTS:
+: [1] "Hello world"
+: [1] 6
+
+
+* Calling User defined R functions from with in Rcpp 	 :R:Rcpp:Cpp:Dynamic:
+So this time I'd like to call a user defined R function from inside of Rcpp...
+
+#+begin_src cpp :tangle yes :tangle cpp/Rcpp/callRFunction.cpp
+#include <iostream>
+#include <Rcpp.h>
+#include <cstring>
+
+RcppExport SEXP Execute(SEXP MyFunctionName)
+{
+    Rcpp::Environment myEnv = Rcpp::Environment::global_env();
+    Rcpp::Function myFunction = myEnv[Rcpp::as<std::string>(MyFunctionName)];
+    return myFunction(Rcpp::Named("x", 2));
+}
+
+// test 2 pass a function as a parameter and execute it
+RcppExport SEXP Execute2(SEXP someFunction)
+{
+    Rcpp::Function myFunction = someFunction;
+    return myFunction(Rcpp::Named("x", 2));
+}
+#+end_src
+We are getting The current loaded R environment and requesting an named object (Probably some SEXP). We then call the function. The thing you will have noticed is that there is a "Named" parameter. I'm not sure if this limits us to only ever being able to call functions with name parameters. If it is the case this is pretty limiting. 
+
+Next we build the .so
+#+begin_src sh :results output
+g++ -c cpp/Rcpp/callRFunction.cpp -o cpp/Rcpp/callRFunction.o -std=c++11 -I /home/parkesy/R/i686-pc-linux-gnu-library/3.0/Rcpp/include/ -I /usr/share/R/include/ && g++ -shared cpp/Rcpp/callRFunction.o -o cpp/Rcpp/callRFunction.so && echo "Done" 
+#+end_src
+
+#+RESULTS:
+: Done
+
+And here we have it. Results!
+#+begin_src R :results output
+library(Rcpp)
+dyn.load('cpp/Rcpp/callRFunction.so')
+
+myFlippingFunction <- function(x) x^2
+
+myFlippingFunction(4)
+
+.Call("Execute", "myFlippingFunction")
+.Call("Execute2", function(x) x^3)
+#+end_src
+
+#+RESULTS:
+: [1] 16
+: [1] 4
+: [1] 8
+
+
+ * Registering Rcpp functions in Rcpp Environment
+
+Its not so clear how to do this.
+#+begin_src cpp :tangle yes :tangle cpp/Rcpp/autoLoadIntoEnv.cpp
+#include <iostream>
+#include <Rcpp.h>
+
+__attribute__((constructor)) void  RegisterFunctions()
+{
+    Rcpp::Environment::global_env()["MYmyMY"] = 
+}
+
+RcppExport SEXP add(SEXP lhs, SEXP rhs)
+{
+    return Rcpp::wrap(Rcpp::as<int>(lhs) + Rcpp::as<int>(rhs));
+}
+#+end_src

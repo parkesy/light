@@ -1,0 +1,10 @@
+I'd like to get more used to writing ml. 
+
+* Getting started: Defining a var
+#+begin_src sml :session *sml*
+fn n => n + 1
+#+end_src
+
+#+RESULTS:
+: val it = fn : int -> int
+
