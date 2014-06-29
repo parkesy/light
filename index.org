@@ -1,7 +1,7 @@
 * Light work.
-This repository is a collection small collection of work. Its mainly an area where I will be exploring techniques and technologies.
+This repository is a collection small collection of work. Its mainly an area where I will be exploring techniques and technologies. [[file:dedication.org][Dedicated to...]]
 
-Current projects
+Current projects:
 #+begin_src sh :results raw
 for i in `ls -D`
 do
