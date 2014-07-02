@@ -24,7 +24,7 @@ rm /tmp/out
 * So can we use these in c++ applications?
 Sure. What we will do is create an application that will create two pipes. One for reading the other for writing.
 
-#+begin_src C++ :flags -std=c++11
+#+begin_src C++ :flags -std=c++11 :tangle yes :tangle src/pipes.cpp :main no
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -46,14 +46,14 @@ int main()
   
    std::ifstream fin;
    fin.open(inPipeName.c_str(), std::ios::in);
-   std::ofstream fout;
-   fout.open(outPipeName.c_str(), std::ios::out);
+//   std::ofstream fout;
+//   fout.open(outPipeName.c_str(), std::ios::out);
 
-   fin.close();
-   fout.close();
+//   fin.close();
+//   fout.close();
 
-   unlink(outPipeName.c_str());
-   unlink(inPipeName.c_str());
+//   unlink(outPipeName.c_str());
+//   unlink(inPipeName.c_str());
 }
 #+end_src 
 

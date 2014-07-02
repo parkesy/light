@@ -1,0 +1,138 @@
+In this document I'll be touching very quickly on the basics of git.
+
+* Why Git?
+What is it about git that people like so much?
+- it is platform independent
+- it has a superior branching model to its current competitors
+- it is very quick
+- it has a intermediate staging area before committing.
+- it works very good at working with distributed and has good failure recovery
+- all the big kids are using it. 
+
+* Understanding Git
+** The three trees of git
+*** index
+*** head
+*** remote
+* Getting started
+I'm going to assume that you have git installed. If not please Google how to download and install git for your OS. 
+
+** Cloning
+Cloning is the method that git uses to get a repository. In the life time of a repository is it only used once. 
+
+#+begin_src sh
+git clone http://github.com/someproject123
+#+end_src 
+Running the above command would go off to github find a repository called "someproject123" download an exact copy of the repo and store it locally in a directory called "someproject123"
+** Checkout
+Once you have cloned a repo you can checkout branches that exist within the repo. Lets say that "someproject123" had versioned branches. It might have master, 1.0 and 1.1. With git checkout you can get checkout different branches.
+
+You can use the below command to explore what branches are available.
+#+begin_src sh :results output
+git branch -a
+#+end_src
+
+#+RESULTS:
+: * master
+:   remotes/origin/HEAD -> origin/master
+:   remotes/origin/master
+
+To change between branches use the below command
+#+begin_src sh
+git checkout -b nameOfRemoteBranch nameOfLocalBranch
+#+end_src
+Within git you have remote branches and local branches. We'll be talking about those later. 
+
+** Add
+Adding changes is done with the below command
+#+begin_src sh
+git add pathToChangedFiles
+#+end_src
+Using Add will put the changes you have made into a staging area. To see what is staged you can use [[Status][git status]].
+
+** Commit
+When you are happy with the work that you have [[Add][added]] you can [[Push][push]] your work up to the remote branch. In my experience it is better to quickly [[Pull --rebase][pull]] before pushing. When committing work you'll need to add a comment about what it is you have changed, added or removed.
+
+You can commit like this
+#+begin_src sh
+git commit 
+#+end_src
+
+** Pull --rebase
+Pull is used to get any remote changes applied to your local branch. Changes are applied to your the head, index and local files. 
+Git is really good at resolving merge conflicts, git has the best auto-merge system I've ever used. In the case that merge conflicts cannot be resolved you'll need to help the system. You can do this with [[Merge][merge tool]]. 
+
+I've suggested using --rebase at all times and that is because it will automaticly stash, merge, stash pop your changes. Your work will appear as a continuous set of commits rather than a spegetti mess of changes through out the history.
+
+#+begin_src sh
+git pull --rebase
+#+end_src 
+
+Note: if you encounter a merge conflict during this process. first resolve the conflict then run
+
+#+begin_src sh
+git rebase --continue
+#+end_src
+
+** Push
+Probably the most important step for some developers it publishing their work to their peers. After you have [[Add][added]], [[Commit][committed]], [[Pull --rebase][pulled]] you should push your work using this command. 
+#+begin_src
+git push
+#+end_src
+** Stash
+If your in a situation where the remote repo has been updated, you have uncommited changes and you wish to update your local branch to match the remote branch. You can use stash to quickly hide away the work you are doing and [[Pull --rebase][pull]] or [[Merge][merge]] from another location. Then once that is completed you can unstash your changes and continue working.
+
+To stash you can do this
+#+begin_src
+git stash 
+#+end_src
+
+To get your work back you can
+#+begin_src
+git stash pop
+#+end_src
+
+** Status
+Status will show you what is changes are currently staged or unstaged
+
+#+begin_src sh :results output
+git status
+#+end_src
+
+#+RESULTS:
+#+begin_example
+On branch master
+Your branch is up-to-date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	deleted:    ../c++/ldopen.org
+	modified:   ../sh/unixFifoFiles.org
+	modified:   ../todo.org
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	../.gitignore~
+	../c++/dlopen.org
+	../c++/sTemplateExpression.org
+	../c++/sTemplateExpression.org~
+	../dedication.org~
+	../emacs/##emacs.org##
+	../emacs/emacs.org~
+	./
+	../index.org~
+
+no changes added to commit (use "git add" and/or "git commit -a")
+#+end_example
+
+** Merge
+When merging you'll be asked to resolve issues where the auto merger can't determine which code is more recent. To resolve this yourself run
+
+#+begin_src sh
+git mergetool
+#+end_src 
+
+You'll be looking for <<<< >>>> markers in the code. They will denote what the head version of the code is verses your staged changes. Becarefull when resolving conflicts and consult the author of the conflicting code.

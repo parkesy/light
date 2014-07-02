@@ -1,2 +1,2 @@
 * TODO finish client server for sh project's c++ application of shared FIFO files
-
+* TODO check that projects are in a working state
