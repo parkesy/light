@@ -1,0 +1,44 @@
+In /dev there is a number of interesting file handles. One of the ones that Id like to have a look at today is /dev/random. 
+
+* What is this /dev/random?
+Firstly it is a special file that acts as blocking pseudorandom number generator. It is said that the random noise is sourced from random noise from the device drivers. The randomness of the output is quite high and is good enough for one-time pad or key generation.
+
+#+begin_src sh :results output
+stat /dev/random
+#+end_src 
+
+There is often another special file called /dev/urandom the 'u' in this case means "unlimited". This is referring to the nature of the generation of the random number generators. /dev/random uses a fixed size entropy pool to produce random data. Where as, /dev/urandom reuses the internal entropy pool to produce more pseudorandom data. This has the added benefit of being non blocking, but the downside of not being suitable for long term crytopkeys. 
+
+You can write into /dev/random. What does that mean? you can mix user data in with existing entropy tool. 
+
+#+RESULTS:
+: /dev/random: character special 
+:   File: ‘/dev/random’
+:   Size: 0         	Blocks: 0          IO Block: 4096   character special file
+: Device: 5h/5d	Inode: 1033        Links: 1     Device type: 1,8
+: Access: (0666/crw-rw-rw-)  Uid: (    0/    root)   Gid: (    0/    root)
+: Access: 2014-07-10 13:55:45.671319317 +1000
+: Modify: 2014-07-10 13:55:45.671319317 +1000
+: Change: 2014-07-10 13:55:45.671319317 +1000
+:  Birth: -
+
+* How can we use /dev/random and /dev/urandom?
+To get the data in a readable number format we are going to us "od". "od" dumps files in octal or some other format. 
+
+Have a look at the manual pages to see what the "magic" arguments 
+
+#+begin_src sh
+od -vAn -N4 -tu4 < /dev/urandom
+#+end_src
+
+#+RESULTS:
+: 822486524.0
+
+#+begin_src sh
+od -An -N4 -i /dev/random
+#+end_src
+
+#+RESULTS:
+: -641333147.0
+
+This should be somewhat obvious, but, you can use this in your own applications by simply opening up this file and reading from it. While I'm being Captain Obvious, doing this will tightly couple your application to Linux. 
