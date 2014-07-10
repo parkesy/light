@@ -1,0 +1,333 @@
+In this document I'll be exploring the awesomeness of dlopen.
+
+dlopen is used to load a shared object into memory.  Shared object files => .so. Ok lets get started!
+
+* Creating a .so file with g++ 
+Creating a .so file is a two step operation. 
+
+First step:
+
+#+begin_src sh
+g++ -c src/test.cpp
+#+end_src
+
+#+RESULTS:
+
+This will result in a file name test.o. What is a .o file is an object file? its a file containing object code. This often mean that the file it self is in a relocatable usable format. The file itself is machine code and not directly executable. for more information please read [[link:http://en.wikipedia.org/wiki/Object_file][this page]].
+
+Second step:
+
+#+begin_src sh
+g++ -shared src/test.o -o src/test.so
+#+end_src
+
+There we have it! We now have a shared object file. But what does that mean? why is this better than the .o file? the other file was relocatable and usable machine code. what is it about this "Shared" object file make is better than an object file?
+
+The difference is in the usage. A shared object file defines a module that can be loaded into memory at run time. Where as object files are copied by the linker at compile time to create a binary. We will see later that I'll be loading a .so file dynamically during run time.n 
+
+Something else that is interesting is that most operating systems represent shared object files in the same format as executable. The interesting point here is that a binary has a symbol table they can be loaded as shared libraries. I'm going to have to try this!
+
+* Creating a application that dynamically loads a .so 
+-Sample code below.
+#+begin_src cpp :flags -rdynamic -std=c++11 -ldl :tangle yes :tangle src/dlopen.cpp
+#include <iostream>
+#include <dlfcn.h>
+using namespace std;
+
+int main(int, char**)
+{
+    // handle is a void* pointer
+    auto handle = dlopen("./src/test.so", RTLD_LAZY);
+    if (!handle)
+    {
+        std::cout << "error: " << dlerror() << std::endl;
+        return 1;
+    }
+    // This call to dlerror is meant to clear any remaining errors
+    // it looks really clunky. I wish I didn;t have to call this 
+    // if the handle is not NULL
+    dlerror(); 
+
+    // create a function pointer handle
+    void (*test)();
+    *(void**)(&test) = dlsym(handle, "test");
+
+    auto error = dlerror();
+    if(error != nullptr)
+    {
+        std::cout << "error: " << error << std::endl;
+    }
+
+    (*test)();
+    dlclose(handle);
+    return 0;
+}
+#+end_src
+
+We will build this file like this:
+#+begin_src sh
+g++ -rdynamic src/ldopen.cpp -o src/dlopen -ldl -std=c++11
+#+end_src
+
+But whats actually happening here? well we are using a library called libdl. Its a dynamic linker library, its the same library used by your systems dynamic linking loader. It provide dynamic linking support with a number of useful functions like dladdr, dlclose, lderror, dlinfo, dlmopen, dlopen and dlsym. We are using this library to load into memory a shared object file then we are requesting the address of a symbol; in the case above we are loading test.so and the symbol we request is called "test". If the symbol is not found the returned value will be null and dlerror() will be set. You then can cast the void* pointer that you get from dlsym into the expected type. In the code above I've cast void* into void(*)();
+
+TECHY: one point of interest is that dlsym does a breadth first search through the dependency tree of the library.
+It is possible that there are multiple definitions of a symbol in library. RTLD_DEFAULT will give you the first occurrence of the desired symbol RTLD_NEXT will give you the next occurrence.
+
+After we have found the droids we are looking for we move on. We call the function and get whatever functionality is provided by the modules function and then we dlclose(handle). dlclose decrements the reference count on the dynamic library handle and if the counter reaches zero the dynamic library is unloaded from memory.
+
+** Dummy function 
+now we just need some functionality in a .so file that we can use to demo the idea.
+
+#+begin_src cpp :flags src/test.cpp -c :tangle yes :tangle src/test.cpp
+#include <iostream>
+
+extern "C" void test()
+{
+    std::cout << "Hello world!" << std::endl;
+}
+#+end_src
+
+Next we use the steps described above to create a shared object file. 
+
+** Results: Success 
+#+begin_src sh :results output
+echo "Create binary"
+g++ src/dlopen.cpp -rdynamic -std=c++11 -ldl -o src/dlopen
+echo "Create shared object file"
+g++ -c src/test.cpp -o src/test.o
+g++ -shared src/test.o -o src/test.so
+echo "-- Running ldopen --"
+./src/dlopen
+echo "-- Done --"
+rm src/dlopen src/test.o src/test.so
+#+end_src 
+
+#+RESULTS:
+: Create binary
+: Create shared object file
+: -- Running ldopen --
+: Hello world!
+: -- Done --
+* Next level: A binary that dynamically creates a new .so file,  links it, and executes a function from it
+The next thing I'm interested in doing is getting a binary to write some c++ out to a file. The file will then get compiled into a .so which will then be loaded via dlopen. I'll then try to execute some function provided by the shared object file.
+
+I've used popen to manage execution system commands. For a proper solution I'd be looking to remove popen and replace it with something more safe.
+
+#+begin_src cpp :flags src/createSo.cpp -o createSo -std=c++11 -ldl :tangle yes :tangle src/createSo.cpp
+#include <iostream>
+#include <dlfcn.h>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <unistd.h>
+#include <stdlib.h>
+using namespace std;
+
+// Not heaps happy with this little function
+bool RunSystemFunction(const char* cmd)
+{
+    FILE* fp = nullptr;
+    int status; 
+    char path[1000];
+    fp = popen(cmd, "r");
+    if (!fp)
+    {   
+        std::cerr << "Failed to run command: " << cmd << std::endl;
+        return false;
+    }   
+    
+    while (fgets(path, sizeof(path)-1, fp) != NULL)
+    {   
+        std::cout << path;
+    }   
+    return true;
+}
+
+int main(int, char**)
+{
+    std::cout << "input valid C++: ";
+    std::string cpp;
+    std::getline(cin, cpp);
+
+    std::stringstream ss; 
+    ss  << "#include <iostream>\n"
+        << "extern \"C\" void entrypoint()\n"
+        << "{\n"
+        << cpp << ";\n"
+        << "}" ;
+    std::ofstream tmpCppFile;
+    tmpCppFile.open("src/tmpCppFile.cpp", std::ios::out);
+    tmpCppFile << ss.str();
+    tmpCppFile.close();
+
+    // I need to find a better way to call a sub process. I don't like that I'm basicly exec'ing
+    // this is not good practice
+    if (!RunSystemFunction("/usr/bin/g++ -c src/tmpCppFile.cpp -o src/tmpCppFile.o")) return 1;
+    if (!RunSystemFunction("/usr/bin/g++ -shared src/tmpCppFile.o -o src/tmpCppFile.so")) return 1;
+
+    // handle is a void* pointer
+    auto handle = dlopen("./src/tmpCppFile.so", RTLD_LAZY);
+    if (!handle)
+    {   
+        std::cout << "error: " << dlerror() << std::endl;
+        return 1;
+    }   
+    // This call to dlerror is meant to clear any remaining errors
+    // it looks really clunky. I wish I didn;t have to call this 
+    // if the handle is not NULL
+    dlerror(); 
+
+    // create a function pointer handle
+    void (*test)();
+    *(void**)(&test) = dlsym(handle, "entrypoint");
+
+    auto error = dlerror();
+    if(error != nullptr)
+    {   
+        std::cout << "error: " << error << std::endl;
+    }   
+
+    (*test)();
+    dlclose(handle);
+    return 0;
+}
+#+end_src 
+
+#+begin_src sh :results output raw
+g++ -rdynamic src/createSo.cpp -o createSo -std=c++11 -ldl -o src/createSo
+echo "std::cout << \"\n7 x 9 = \" << 7*9 << std::endl" | ./src/createSo
+rm src/createSo src/tmpCppFile.so src/tmpCppFile.o
+#+end_src 
+
+#+RESULTS:
+input valid C++: 
+7 x 9 = 63
+
+* Next level: Use functions in the host application from the .so
+I've noticed that .so files can have undefined symbols. Which I believe means that the code depends on the symbol but the linker could not find its location. What I'd like to do is have a host application which provides some function, the shared object that it will load will try to use the hosts function without actually knowing the implementation at compilation.
+
+Below is our header. It simply describes a function that will be made available.
+#+begin_src cpp :tangle yes :tangle src/getNumber.hpp
+int GetNumber();
+#+end_src
+
+Hers is the implementation of that function.
+#+begin_src cpp :tangle yes :tangle src/getNumber.cpp
+int GetNumber() 
+{
+    return 1337;
+}
+#+end_src
+
+This file will be used to create an shared object
+#+begin_src cpp :tangle yes :tangle src/test2.cpp
+#include <iostream>
+#include "src/getNumber.hpp"
+
+extern "C" void test()
+{
+    std::cout << GetNumber() << std::endl;
+}
+#+end_src 
+
+** Quick side quest: ELF 
+Lets quickly see check that we have the expected result of GetNumber being UND
+#+begin_src sh :results output table raw
+g++ -c src/test2.cpp -o src/test2.o -I .
+g++ -shared src/test2.o -o src/test2.so
+readelf -s src/test2.so | head -3 | tail -2
+readelf -s src/test2.so | grep "GetNumber"
+#+end_src 
+
+Here are the results listed below in this nice looking table.
+#+RESULTS.
+| Symbol | table | '.dynsym' | contains | 20     | entries: |     |               |
+|   Num: | Value |      Size | Type     | Bind   | Vis      | Ndx | Name          |
+|     9: |     0 |         0 | NOTYPE   | GLOBAL | DEFAULT  | UND | _Z9GetNumberv |
+|    55: |     0 |         0 | NOTYPE   | GLOBAL | DEFAULT  | UND | _Z9GetNumberv |
+There are two entries that you can see. The first is for the .dynsym table and the second is listed in the .symtab table.
+The dynsym is a table that only contains global symbols. The symtab contains all symbols. A question that is often asked; why have a dynsym table that is a subset of the symtab. The answer revolves around allocable and non allocable code. The symtab contains non-allocable code that is often used by debugging tools. Think about the gnu command [[link:http://en.wikipedia.org/wiki/Strip_(Unix)][strip]], it remove unnecessary information from an executable yielding smaller binaries and possibly better performance. What is strip really doing? dumping the symtab.
+
+lets have a quick look at it
+#+begin_src sh :results output table raw
+strip -s src/test2.so
+readelf -s src/test2.so | head -3 | tail -2
+readelf -s src/test2.so | grep "GetNumber"
+#+end_src
+
+#+RESULTS:
+| Symbol | table | '.dynsym' | contains | 20     | entries: |     |               |
+| Num:   | Value | Size      | Type     | Bind   | Vis      | Ndx | Name          |
+| 9:     | 0     | 0         | NOTYPE   | GLOBAL | DEFAULT  | UND | _Z9GetNumberv |
+So the second entry is gone. There is only the dynsym entry left. 
+* Continue: Use functions in the host application from the .so
+
+I'm taking the first dlopen example and I'm going to simply add the getNumber header file.
+#+begin_src cpp :tangle yes :tangle src/dlopen2.cpp
+#include <iostream>
+#include <dlfcn.h>
+
+#include "src/getNumber.hpp"
+
+int main(int, char**)
+{
+    std::cout << "GetNumber Test1: " << GetNumber() << std::endl;
+    // handle is a void* pointer
+    auto handle = dlopen("./src/test2.so", RTLD_LAZY);
+    if (!handle)
+    {
+        std::cout << "error: " << dlerror() << std::endl;
+        return 1;
+    }
+    // This call to dlerror is meant to clear any remaining errors
+    // it looks really clunky. I wish I didn;t have to call this 
+    // if the handle is not NULL
+    dlerror(); 
+
+    // create a function pointer handle
+    void (*test)();
+    *(void**)(&test) = dlsym(handle, "test");
+
+    auto error = dlerror();
+    if(error != nullptr)
+    {
+        std::cout << "error: " << error << std::endl;
+    }
+
+    std::cout << "GetNumber Test2: ";
+    (*test)();
+    dlclose(handle);
+    return 0;
+}
+#+end_src
+
+Lets build and run this
+#+begin_src sh :results output raw
+g++ -c src/test2.cpp -o src/test2.o -I .
+g++ -shared src/test2.o -o src/test2.so
+g++ -rdynamic src/dlopen2.cpp src/getNumber.cpp -ldl -std=c++11 -o src/dlopen2 -I .
+./src/dlopen2
+rm src/dlopen2 src/test2.so src/test2.o
+#+end_src 
+
+Great Success! 
+
+* Application of the last two experiments:
+Assuming that your host application has all possible symbols defined for your code generated .so file. You only need to provide the relevant header files when compiling the .so. The dynamic linker will link do the hard work of resolving the undefined symbols at run time.
+
+* Source 
+Below is the source for this project
+#+begin_src sh :results value raw
+cd ..
+tar -cvfz /tmp/cpp-stuff.tgz cpp/ 2>&1 > /dev/null
+echo "[[file:./learning.tgz][Download Source]]"
+#+end_src
+
+#+RESULTS:
+tar: Removing leading `/' from member names
+tar: /tmp/cpp-stuff.tgz: Cannot stat: No such file or directory
+tar: cpp: Cannot stat: No such file or directory
+tar: Exiting with failure status due to previous errors
+[[file:./learning.tgz][Download Source]]
+
