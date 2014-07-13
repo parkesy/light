@@ -1,0 +1,18 @@
+* Binary Literals													  :Cpp14:
+In c++ binary numbers can be represented as there literal representation.
+
+#+begin_src C++ :flags --std=c++1y :results output
+#include <iostream>
+
+int main()
+{
+   std::cout << 0b1000 << std::endl;
+   std::cout << 0b101001 << std::endl;
+} 
+
+#+end_src
+
+#+RESULTS:
+|  8 |
+| 41 |
+

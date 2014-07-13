@@ -1,0 +1,84 @@
+This document will export the C++ development idiom that is called Pimpl. If your thinking WTF is Pimpl, think Pointer to Implementation.
+
+Here is a simple example.
+#+begin_src C++ :tangle yes :tangle src/sampleToy.hpp :main no
+#pragma once
+
+#include <memory> 
+// toy.hpp
+class Toy
+{
+private:
+    class Impl;
+    Impl* mImpl;
+public:
+    Toy();
+    void Do();
+};
+#+end_src
+
+#+begin_src C++ :tangle yes :tangle src/sampleToy.cpp :main no 
+#include "sampleToy.hpp"
+// Toy.cpp
+class Toy::Impl
+{
+public:
+    void Do() { /* STUFF */ }
+};
+
+Toy::Toy() : mImpl(new Toy::Impl()) {}
+void Toy::Do() { mImpl->Do(); }
+#+end_src
+
+People who have talked to me about this Idiom tout it as a method to hide implementation away a cpp file and increase security. I'm really not that sure about this... What are you really hiding? and what is the cost?
+
+Again lets stick with the simple example and remove the pimpl idea... Surely this is better?
+#+begin_src C++ :tangle yes :tangle src/nonPimplToy.hpp :main no
+#pragma once 
+// Toy.hpp
+class Toy
+{
+public:
+    void Do() { }
+};
+#+end_src
+
+In a simple case this is fare better! But to really see what benefit we get from Pimpl we need to make this example more complex. Imagine if you have many private function in the implementation of Toy. The user of the library, in the Pimpl case, would not see these functions. In non Pimpl case they would. Is seeing private functions really a big deal? Maybe, compile times "might" be slightly shorter if you can hid them and you "might" improve security via obscurity. But there is a massive issue that I don't think we are really capturing here; the cost of allocation during construction. 
+
+Simple question: Why can't we simply store the implementation by value rather than by pointer? Well Impl is an incomplete type. C++ doesn't know the footprint/size of the class. So Pimpl gets around this by using a pointer.
+
+#+begin_src C++ :tangle yes :tangle src/toy.hpp :main no
+#pragma once 
+// toy.hpp
+class Toy
+{
+private:
+    class Impl;:
+    Impl mImpl;
+
+public:
+    Toy();
+    void Do();
+};
+#+end_src
+
+#+begin_src C++ :tangle yes :tangle src/toy.cpp :main no
+#include "toy.hpp"
+// Toy.cpp
+class Toy::Impl
+{
+public:
+    void Do() { /* STUFF */ }
+};
+
+Toy::Toy() {}
+void Toy::Do() { mImpl.Do(); }
+#+end_src
+
+I don't like the fact that pimpl uses a pointer to mask the actual private definitions from the end user. I do like the effect, but no the cost associated with it. Theoretically run time cost:
+- Construction: heap allocation
+- Function call: heap dereference.
+- Destruction: heap clean up... Not a huge deal.
+
+** Quick Baseline test
+So now that I have accused Pimpl of being slow I think I should test it.
