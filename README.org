@@ -14,7 +14,7 @@ done
 
 #+RESULTS:
 | 7 projects in the [[file:c++][c++]] directory        |
-| 3 projects in the [[file:emacs][emacs]] directory      |
+| 2 projects in the [[file:emacs][emacs]] directory      |
 | 1 projects in the [[file:git][git]] directory        |
 | 1 projects in the [[file:lisp][lisp]] directory       |
 | 1 projects in the [[file:lisp+c++][lisp+c++]] directory   |
@@ -22,13 +22,13 @@ done
 | 1 projects in the [[file:python][python]] directory     |
 | 0 projects in the [[file:R][R]] directory          |
 | 1 projects in the [[file:R+c++][R+c++]] directory      |
-| 3 projects in the [[file:sh][sh]] directory         |
+| 2 projects in the [[file:sh][sh]] directory         |
 
 
 ** Setup
-I've used org-babel to merge text and code together to give extra context during relearning. Most projects are will generate src code which will be located in <project>/src.
+I've used org-babel to merge text and code together to give extra context for the purpose of relearning when reviewing. Most projects will generate source code which will be located in <project>/src.
 
-I'd advise that you use emacs and my .emacs configuration located in the emacs project directory. There will be some packages you'll need to download.
+I'd advise that you use emacs and my .emacs configuration located in the emacs project directory. There will be some packages you'll need to download. 
 
 The below script will set up the required directories so that they are ready for you to use. In emacs press C-c C-c 
 #+begin_src sh :results output
@@ -47,6 +47,7 @@ echo "Done."
 #+begin_example
 Created c++/src
 Created emacs/src
+Created git/src
 Created lisp/src
 Created lisp+c++/src
 Created networking/src
