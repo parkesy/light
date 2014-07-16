@@ -82,3 +82,8 @@ I don't like the fact that pimpl uses a pointer to mask the actual private defin
 
 ** Quick Baseline test
 So now that I have accused Pimpl of being slow I think I should test it.
+*** Test 1. Simple bench marking test
+In this test I'll execute the "Do" function a number of times and observe the time taken to execute.
+**** Check with no optimisation (g++ -O0)
+**** Check with aggressive optimisation (g++ -O3)
+We'll need to do some tricks here to make sure the functions aren't removed during aggressive optimisation analysis.

@@ -3,8 +3,8 @@ In this document I'll be collating interview questions that I've experience or h
 * General
 ** Find the most frequent integer in an array
 Questions that first come to mind to give more context about the style of answer required?
-- Is the list of numbers known at compile time?
-- Whats the max possible value that we are going to get? Is it known. ie numeric_limit<int>::max etc.
+- Is the list of numbers known at compile time? Can we use template meta programming to reduce the work at compile time.
+- Whats the max possible value that we are going to get? Is it known. ie numeric_limit<int>::max etc. We could do some optimisations if we know the bounds of the data.
 - What answer do you want if all number appear equal number of times?
 
 I'm going to go for the simplest solution first; that is a map of integers to counts. 
@@ -104,25 +104,792 @@ int main()
 | 1 |
 
 ** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)
+So we have a array of integers. We need to identify pairs for which the sum is equal to ten.
+- Are all the integers positive?
+
+#+begin_src C++ :results output :flags --std=c++11
+#include <iostream>
+#include <unordered_set>
+int main()
+{
+   
+   int list[] = {1, 2, 3, 4, 5, 6, 7, -3, 13};
+   std::unordered_set<int> mFound;
+   for (auto i : list)
+   {
+      mFound.insert(i);
+      auto itr = mFound.find(10-i);
+      if (itr != mFound.end())
+          std::cout << "10 = " << i << " + " << *itr << std::endl;
+   }
+}
+#+end_src
+
+#+RESULTS:
+: 10 = 5 + 5
+: 10 = 6 + 4
+: 10 = 7 + 3
+: 10 = 13 + -3
+
 ** Given 2 integer arrays, determine of the 2nd array is a rotated version of the 1st array. Ex. Original Array A={1,2,3,5,6,7,8} Rotated Array B={5,6,7,8,1,2,3}
+#+begin_src C++ :results output :flags --std=c++11
+#include <iostream>
+#include <iterator>
+
+bool ArrayRotMatch(int* lhs, int* rhs, int* lhsEnd, int* rhsEnd)
+{
+
+    auto lItr = lhs;
+    auto rItr = rhs;
+    
+    // find begining of matching part
+    while (rItr != rhsEnd) 
+        if (*rItr == *lItr) 
+            break;
+        else 
+            ++rItr;
+    
+    bool possibleRotation = rItr != rhs;
+    auto rPartitionEnd = rItr;
+
+    // if you found the end then not all of lhs exists in rhs 
+    if (rItr == rhsEnd) 
+        return false;
+
+    while (rItr != rhsEnd)
+        if (*rItr != *lItr)
+            return false;
+        else
+        {
+            ++rItr;
+            ++lItr;
+        }
+
+    return possibleRotation ? ArrayRotMatch(lItr, rhs, lhsEnd, rPartitionEnd) : true;
+}
+
+int main()
+{
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {1,2,3,4,5};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {2,3,4,5,1};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {3,4,5,1,2};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {5,1,2,3,4};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {3,4,5,1,3};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+: T
+: T
+: T
+: T
+: F
+
 ** Write fibbonaci iteratively and recursively (bonus: use dynamic programming)
+Iterative
+#+begin_src C++
+
+#include <iostream>
+int main()
+{
+    int prev = 0;
+    int curr = 1;
+    for (int i = 0 ; i < 20 ; ++i)
+    {
+        int next = prev + curr;
+        std::cout << i << " " << next << std::endl;
+        prev = curr;
+        curr = next;
+    }
+} 
+
+#+end_src
+
+#+RESULTS:
+|  0 |     1 |
+|  1 |     2 |
+|  2 |     3 |
+|  3 |     5 |
+|  4 |     8 |
+|  5 |    13 |
+|  6 |    21 |
+|  7 |    34 |
+|  8 |    55 |
+|  9 |    89 |
+| 10 |   144 |
+| 11 |   233 |
+| 12 |   377 |
+| 13 |   610 |
+| 14 |   987 |
+| 15 |  1597 |
+| 16 |  2584 |
+| 17 |  4181 |
+| 18 |  6765 |
+| 19 | 10946 |
+
+Recursive
+#+begin_src C++
+#include <iostream>
+
+void fib(int prev, int curr, int count)
+{
+    if (count == 0) return;
+    int next = prev + curr;
+    std::cout << next << std::endl;
+    fib(curr, next, --count);
+}
+
+int main()
+{
+  fib(0, 1, 10);
+}
+#+end_src
+
+#+RESULTS:
+|  1 |
+|  2 |
+|  3 |
+|  5 |
+|  8 |
+| 13 |
+| 21 |
+| 34 |
+| 55 |
+| 89 |
+
+Template meta programming
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <int PREV, int CURR>
+struct Fib
+{
+    static constexpr int value = PREV + CURR;  
+    using next = Fib<CURR, value>;
+}; 
+using Fibbonaci = Fib<0,1>;
+int main()
+{
+    std::cout << Fibbonaci::next::next::next::next::value << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 8
+
 ** Find the only element in an array that only occurs once.
+#+begin_src C++ :flags --std=c++11 :results output
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+
+template <typename T, std::size_t N>
+std::unordered_set<T> Distinct(T (&list)[N])
+{
+    std::unordered_set<T> distinct;
+    std::unordered_map<T,int> counts;
+
+    for(auto i : list)
+    {
+        auto count = ++counts[i];
+        if (count == 1)
+            distinct.insert(i);
+        else
+            distinct.erase(i);
+    }
+    return distinct;
+}
+
+int main()
+{
+	int a[] = {1,2,2,3,3,4,4,5};
+	for (auto i : Distinct(a))
+		std::cout << i << ", ";
+	std::cout << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 5, 1,
+
 ** Find the common elements of 2 int arrays
+Ok, so what this question is asking is to find the intersecting elements of two sets.
+
+#+begin_src C++ :flags -std=c++11 :results output
+#include <iostream>
+#include <unordered_set>
+
+template <typename T, std::size_t N, std::size_t Z>
+std::unordered_set<T> Intersect(T (&lhs)[N], T (&rhs)[Z])
+{
+    std::unordered_set<T> intersect;
+    for(auto i : lhs)
+       for(auto j : rhs)
+           if (i == j) 
+               intersect.insert(i);
+    return intersect;
+}
+
+int main()
+{
+    {
+        int a[] = {1,2,3,4,5};
+        int b[] = {5,6,7,8,9,4};
+        for (auto i : Intersect(a, b))
+            std::cout << i << ", ";
+        std::cout << std::endl;
+    }
+    {
+        int a[] = {1,2,3,4,5};
+        int b[] = {6,7,8,9};
+        for (auto i : Intersect(a, b))
+            std::cout << i << ", ";
+        std::cout << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+: 5, 4,
+
 ** Implement binary search of a sorted array of integers
+#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/bsearch.cpp
+#include <iostream>
+#include <iterator>
+
+template <typename T, size_t N>
+auto SearchSorted(T (&list)[N], T target) -> decltype(std::begin(list))
+{
+    
+    auto beg = std::begin(list);
+    auto end = std::end(list);
+    int distance = std::distance(beg, end);
+    
+    while(1)
+    {
+		if (beg == end) return std::end(list);
+		auto itr = beg + (distance/2);
+		if (*itr == target) 
+			return itr;
+		else if (*itr < target)
+		{
+			distance = std::distance(itr + 1, end);
+			beg = itr + 1;
+		}
+		else // greater than
+		{
+			distance = std::distance(beg, itr);
+			end = itr;
+		}
+    }  
+}
+
+int main()
+{
+    int a[] = {1,2,3,4,5,6,7,8,9,11};
+    for(int i : a)
+    {
+        auto item = SearchSorted(a, i);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, 10);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, 12);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, -2);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Found! value: 1
+Found! value: 2
+Found! value: 3
+Found! value: 4
+Found! value: 5
+Found! value: 6
+Found! value: 7
+Found! value: 8
+Found! value: 9
+Found! value: 11
+!Found value: -1
+!Found value: -1
+!Found value: -1
+#+end_example
+
 ** Implement binary search in a rotated array (ex. {5,6,7,8,1,2,3})
 ** Use dynamic programming to find the first X prime numbers
 ** Write a function that prints out the binary form of an int
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/binaryIO.cpp
+#include <iostream>
+#include <string>
+
+void ToBinary(int i)
+{
+    unsigned int mask = ~0;
+    mask = mask ^ mask >> 1;
+    do
+    {
+        std::cout << bool(i & mask);
+    } while (mask = ma  sk >> 1);
+}
+
+int main()
+{
+    ToBinary(14);
+}
+#+end_src
+
+#+RESULTS:
+: 1110
+
 ** Implement parseInt
 ** Implement squareroot function
 ** Implement an exponent function (bonus: now try in log(n) time)
 ** Write a multiply function that multiples 2 integers without using *
+Cheating answer
+#+begin_src C++ 
+#include <iostream>
+int main()
+{
+    std::cout << 6 / (1.0/6);
+}
+#+end_src
+
 ** HARD: Given a function rand5() that returns a random int between 0 and 5, implement rand7()
 ** HARD: Given a 2D array of 1s and 0s, count the number of "islands of 1s" (e.g. groups of connecting 1s)
+Thoughts: 
+- I'm going to consider this as an island; i.e. A 1 that is complete girt by sea.
+| 0 | 0 | 0 |
+| 0 | 1 | 0 |
+| 0 | 0 | 0 | 
+this would also be an island
+| 0 | 0 | 0 |
+| 0 | 1 | 0 |
+| 0 | 1 | 0 |
+| 0 | 0 | 0 | 
+as would
+| 0 | 0 | 0 | 0 |
+| 0 | 1 | 0 | 0 |
+| 0 | 0 | 1 | 0 |
+| 0 | 0 | 0 | 0 |
+- approach? So we are going need traverse the 2d array looking for ones. When we find a land we are going to walk around the island and mark it. 
+#+begin_src C++ :flags --std=c++11 :results table
+#include <iostream>
+
+template <typename T, std::size_t R, std::size_t C>
+void plotMap(T (&island)[R][C])
+{
+    for (int c = 0 ; c < C ; ++c)
+    {
+        for(int r = 0 ; r < R; ++r)
+            std::cout << island[r][c] << " ";
+        std::cout << std::endl;
+    }
+}
+
+template <std::size_t R, std::size_t C>
+bool traverseAndMap(int id, int r, int c, bool (&island)[R][C], int (&counts)[R][C])
+{
+    if (r < 0 || c < 0 || r >= R || c >= C || counts[r][c] != 0) return false;
+    if (island[r][c])
+    {
+        counts[r][c] = id;
+        traverseAndMap(id, r - 1, c - 1, island, counts); 
+        traverseAndMap(id, r - 1, c, island, counts); 
+        traverseAndMap(id, r - 1, c + 1, island, counts); 
+        
+        traverseAndMap(id, r, c - 1, island, counts); 
+        traverseAndMap(id, r, c + 1, island, counts);
+ 
+        traverseAndMap(id, r + 1, c - 1, island, counts); 
+        traverseAndMap(id, r + 1, c, island, counts); 
+        traverseAndMap(id, r + 1, c + 1, island, counts); 
+        return true;
+    }
+    return false;
+}
+template <std::size_t R, std::size_t C>
+void discover(bool (&island)[R][C], int (&counts)[R][C])
+{
+    int count = 1;
+    for (int c = 0 ; c < C ; ++c)
+    {
+        for(int r = 0 ; r < R; ++r)
+            count += traverseAndMap(count, r, c, island, counts);
+    }
+
+    plotMap(counts);
+}
+
+int main()
+{
+    // I'm using no init here because I want random boolean junk.
+    bool island[6][10];
+    plotMap(island);
+
+    std::cout << "\nR E S U L T\n" <<std::endl;
+    // I'm init-ing here because I want the countIsland clean
+    int countIsland[6][10] = {0};
+    
+    discover(island, countIsland);
+}
+#+end_src
+
+#+RESULTS:
+| 0 | 0 | 0 | 0 | 0 | 0 |
+| 1 | 1 | 1 | 0 | 0 | 1 |
+| 1 | 1 | 1 | 1 | 0 | 0 |
+| 1 | 0 | 1 | 0 | 1 | 0 |
+| 0 | 0 | 1 | 0 | 1 | 1 |
+| 0 | 0 | 0 | 0 | 0 | 1 |
+| 0 | 0 | 0 | 0 | 1 | 1 |
+| 0 | 0 | 0 | 0 | 1 | 1 |
+| 0 | 1 | 0 | 0 | 0 | 0 |
+| 0 | 1 | 1 | 1 | 1 | 0 |
+|   |   |   |   |   |   |
+| R | E | S | U | L | T |
+|   |   |   |   |   |   |
+| 0 | 0 | 0 | 0 | 0 | 0 |
+| 1 | 1 | 1 | 0 | 0 | 2 |
+| 1 | 1 | 1 | 1 | 0 | 0 |
+| 1 | 0 | 1 | 0 | 1 | 0 |
+| 0 | 0 | 1 | 0 | 1 | 1 |
+| 0 | 0 | 0 | 0 | 0 | 1 |
+| 0 | 0 | 0 | 0 | 1 | 1 |
+| 0 | 0 | 0 | 0 | 1 | 1 |
+| 0 | 3 | 0 | 0 | 0 | 0 |
+| 0 | 3 | 3 | 3 | 3 | 0 |
+
+
 * Strings
 ** Find the first non-repeated character in a String
 ** Reverse a String iteratively and recursively
+Iteratively
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <typename T, std::size_t N>
+void rev(T (&list)[N])
+{
+    for(int i = 0; i < (N-1)/2 ; ++i) 
+       std::swap(list[i], list[N - 1 - i]);  
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+    {
+		char i[] = "world!";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+}
+#+end_src
+
+#+RESULTS:
+:  !olleH
+
+
+Recursively
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <typename T, std::size_t N>
+void rev(T (&list)[N], int index = 0, int Stop=(N-1)/2)
+{
+    std::swap(list[index], list[N - 1 - index]);
+    if (index < Stop)
+        rev(list, ++index);
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+    {
+		char i[] = "world!";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+}
+#+end_src
+
+#+RESULTS:
+:  olleH !dlrow
+
+Meta
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <typename T, std::size_t N, std::size_t I = 0, std::size_t S=(N-1)/2>
+typename std::enable_if<I >= S, void>::type rev(T (&list)[N]) { }
+
+template <typename T, std::size_t N, std::size_t I = 0, std::size_t S=(N-1)/2>
+typename std::enable_if<I < S, void>::type rev(T (&list)[N])
+{
+    std::swap(list[I], list[N - 1 - I]);
+    rev<T, N, I + 1, S>(list);
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+    {
+		char i[] = "world!";
+		rev(i);
+		for (auto letter : i)
+			std::cout << letter;
+    }
+}
+#+end_src
+
+#+RESULTS:
+:  olleH !dlrow
+
 ** Determine if 2 Strings are anagrams
-** Check if String is a palindrome
+ 
+There might be a better way of doing this.
+I ignored spaces...
+#+begin_src C++ :flags --std=c++11 :results output
+#include <iostream>
+#include <unordered_map>
+
+template <typename T, std::size_t N>
+bool IsAnagram(T (&lhs)[N], T (&rhs)[N])
+{
+    std::unordered_map<T, int> lhsCount;
+    std::unordered_map<T, int> rhsCount;
+    for(int i = 0 ; i < N; ++i)
+    {
+        ++lhsCount[lhs[i]];
+        ++rhsCount[rhs[i]];
+    } 
+    return lhsCount == rhsCount;
+}
+
+int main()
+{
+   {
+       char a[] = "damn";
+       char b[] = "admn";
+       std::cout << "Are " << a << " and " << b << " anagrams ? " << (IsAnagram(a,b) ? "YES" : "NO!") << std::endl;
+   }
+   
+   {
+       char a[] = "anagram";
+       char b[] = "nagaram";
+       std::cout << "Are " << a << " and " << b << " anagrams ? " << (IsAnagram(a,b) ? "YES" : "NO!") << std::endl;
+   }
+   
+   {
+       char a[] = "Button";
+       char b[] = "Mutton";
+       std::cout << "Are " << a << " and " << b << " anagrams ? " << (IsAnagram(a,b) ? "YES" : "NO!") << std::endl;
+   }
+
+   int a[] = {1,2,3,3};
+   int b[] = {3,2,1,3};
+   std::cout << "ints!? " << (IsAnagram(a,b) ? "YES" : "NO!") << std::endl;
+}
+#+end_src 
+
+#+RESULTS:
+: Are damn and admn anagrams ? YES
+: Are anagram and nagaram anagrams ? YES
+: Are Button and Mutton anagrams ? NO!
+: ints!? YES
+
+** TODO Check if String is a palindrome
+Iteratively
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <typename T, std::size_t N>
+bool IsPalindrome(T (&list)[N])
+{
+    bool result = true; 
+    for(int i = 0; i < (N-1)/2 ; ++i) 
+        result &= list[i] == list[N - 2 - i];  
+    return result;
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "racecar";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "maem";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "maam";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "m";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+| No! |
+| Yes |
+| No! |
+| Yes |
+| Yes |
+
+
+Recursively
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/palindrome-rec.cpp :results output
+#include <iostream>
+
+template <typename T, std::size_t N>
+bool IsPalindrome(T (&list)[N], int index = 0, int Stop=(N-1)/2)
+{
+    if (N <= 2) return true;
+
+    bool result = list[index] == list[N - 2 - index];
+    if (index < Stop)
+        return result && IsPalindrome(list, ++index);
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "racecar";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "maem";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "maam";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "m";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+}
+#+end_src
+
+Meta
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+template <typename T, std::size_t N, std::size_t I = 0, std::size_t S=(N-1)/2>
+typename std::enable_if<N <= 2, bool>::type IsPalindrome(T (&list)[N]) { return true; }
+
+template <typename T, std::size_t N, std::size_t I = 0, std::size_t S=(N-1)/2>
+typename std::enable_if<I >= S && N >= 3, bool>::type IsPalindrome(T (&list)[N]) { return true; }
+
+template <typename T, std::size_t N, std::size_t I = 0, std::size_t S=(N-1)/2>
+typename std::enable_if<I < S && N >= 3, bool>::type IsPalindrome(T (&list)[N])
+{
+    return list[I] == list[N - 2 - I] && IsPalindrome<T, N, I + 1, S>(list);
+}
+
+int main()
+{
+    {
+		char i[] = "Hello";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "racecar";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    {
+		char i[] = "maem";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "maam";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+    
+    {
+		char i[] = "m";
+		std::cout << (IsPalindrome(i) ? "Yes" : "No!") << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+| No! |
+| Yes |
+| No! |
+| Yes |
+| Yes |
+
+
 ** Check if a String is composed of all unique characters
 ** Determine if a String is an int or a double
 ** HARD: Find the shortest palindrome in a String
@@ -163,3 +930,29 @@ int main()
 ** Implement insertion sort
 ** Implement merge sort
 ** Implement quick sort
+
+
+
+
+#+begin_src R :results output :session *R*
+x <- matrix(c(12, 5, 7, 7), ncol = 2)
+#+end_src
+
+#+begin_src R :results output :session *R*
+chisq.test(x)
+#+end_src
+
+#+RESULTS:
+: 
+: 	Pearson's Chi-squared test with Yates' continuity correction
+: 
+: data:  x
+: X-squared = 0.6411, df = 1, p-value = 0.4233
+
+
+#+begin_src R :results graphic :session *R*
+hist(x)
+#+end_src
+
+#+RESULTS:
+
