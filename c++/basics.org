@@ -1,15 +1,15 @@
-In this document I'll be collating interview questions that I've experience or heard off.
+In this document I'll be collating interview questions that I've experienced or heard of and I'll try and suggest answers.
 
 * General
 ** Find the most frequent integer in an array
-Questions that first come to mind to give more context about the style of answer required?
+I'd like to get more context about the style of answer required. These are some followup questions:
 - Is the list of numbers known at compile time? Can we use template meta programming to reduce the work at compile time.
-- Whats the max possible value that we are going to get? Is it known. ie numeric_limit<int>::max etc. We could do some optimisations if we know the bounds of the data.
+- Whats the max possible value that we are going to get? Is it known. i.e. numeric_limit<int>::max etc. We could do some optimisation if we know the bounds of the data.
 - What answer do you want if all number appear equal number of times?
 
 I'm going to go for the simplest solution first; that is a map of integers to counts. 
 
-#+begin_src C++ :flags -std=c++11
+#+begin_src C++ :flags -std=c++11 :results output
 #include <map>
 #include <iostream> 
 
@@ -51,57 +51,13 @@ int main()
 #+end_src 
 
 #+RESULTS:
-| 2 |
-| 1 |
+: 2
+: 1
 
 Downsides: well its a map so allocations and lookups will slow it down.
-
 Lets say that we know the list at compile time and actually try and take advantage of that.
 
-#+begin_src C++ :flags -std=c++11
-#include <map>
-#include <iostream> 
-
-template <int... Indices>
-struct indices 
-{
-    using next = indices<Indices..., sizeof...(Indices)>;
-}
-template <int size>
-struct build_indices
-{
-    using type = typename build_indices<size - 1>::type::next;
-};
-template<>
-struct build_indices<0>
-{
-    using type = indices<>;
-};
-
-template <std::size_t N>
-constexpr int findMostFrequent(const int (&list)[N])
-{
-    auto tuple = ArrayToTuple(list);
-}
-
-int main()
-{
-    {
-        int a[] = {1,2,3,4,2,2};
-        int a[] = {1,3,1,1};
-        std::cout << findMostFrequent(a) << std::endl;
-    }
-
-    {
-        int a[] = {1,2,3,4};
-        std::cout << findMostFrequent(a) << std::endl;
-    }
-}
-#+end_src 
-
 #+RESULTS:
-| 1 |
-| 1 |
 
 ** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)
 So we have a array of integers. We need to identify pairs for which the sum is equal to ten.
@@ -594,7 +550,6 @@ int main()
 | 0 | 3 | 0 | 0 | 0 | 0 |
 | 0 | 3 | 3 | 3 | 3 | 0 |
 
-
 * Strings
 ** Find the first non-repeated character in a String
 ** Reverse a String iteratively and recursively
@@ -889,7 +844,6 @@ int main()
 | Yes |
 | Yes |
 
-
 ** Check if a String is composed of all unique characters
 ** Determine if a String is an int or a double
 ** HARD: Find the shortest palindrome in a String
@@ -930,8 +884,6 @@ int main()
 ** Implement insertion sort
 ** Implement merge sort
 ** Implement quick sort
-
-
 
 
 #+begin_src R :results output :session *R*
