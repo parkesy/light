@@ -1,12 +1,13 @@
-In this document I'll be collating interview questions that I've experienced or heard of and I'll try and suggest answers.
+In this document I'll be collating interview questions that I've experienced or have heard and I'll try and suggest answers.
 
-* General
+As a rule I try and ask lots of questions about the task. So that I can try and understand best what the interviewer is asking.
+
+* General - programming questions
 ** Find the most frequent integer in an array
 I'd like to get more context about the style of answer required. These are some followup questions:
 - Is the list of numbers known at compile time? Can we use template meta programming to reduce the work at compile time.
 - Whats the max possible value that we are going to get? Is it known. i.e. numeric_limit<int>::max etc. We could do some optimisation if we know the bounds of the data.
 - What answer do you want if all number appear equal number of times?
-
 I'm going to go for the simplest solution first; that is a map of integers to counts. 
 
 #+begin_src C++ :flags -std=c++11 :results output
@@ -56,8 +57,6 @@ int main()
 
 Downsides: well its a map so allocations and lookups will slow it down.
 Lets say that we know the list at compile time and actually try and take advantage of that.
-
-#+RESULTS:
 
 ** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)
 So we have a array of integers. We need to identify pairs for which the sum is equal to ten.
@@ -408,6 +407,50 @@ Found! value: 11
 
 ** Implement binary search in a rotated array (ex. {5,6,7,8,1,2,3})
 ** Use dynamic programming to find the first X prime numbers
+[[link:http://en.wikipedia.org/wiki/Dynamic_programming]["Dynamic Programming]] is a technique for solving complex problems by breaking them down into simpler sub-problems and optimal substructures". Dynamic programming uses memoization to cache results of simple calculations. 
+
+One technique for finding primes is the [[link:http://primes.utm.edu/notes/faq/six.html][6n -/+ 1]] technique shown below. This algorithm takes advantage previously discovered primes and reduces the amount of work required to calculate the next prime. 
+#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/primes.cpp
+#include <iostream>
+#include <vector>
+
+bool IsPrime(int x, const std::vector<int>& primes)
+{
+    if (x < 2) return false;
+    for (int k = 0; k < primes.size() && (primes[k] * primes[k]) < x; ++k)
+       if ((x % primes[k])== 0)
+           return false;
+    return true;
+}
+
+int DiscoverPrimes(int number, std::vector<int> & primes)
+{
+    primes.resize(number);
+    primes[1] = 1 + (primes[0] = 2);
+    
+    for (int k = 2, i = 6; k < number; i += 6)
+    {
+        // increment in 5 and 7s
+        int test = i - i;
+        if (IsPrime(test, primes))
+            primes[k++] = test;
+        test = i + 1;
+        if (k < number && IsPrime(test, primes))
+           primes[k++] = test;
+    }
+} 
+
+int main()
+{
+    std::vector<int> primes;
+    DiscoverPrimes(10, primes);
+
+    for(auto i : primes)
+        std::cout << i << " ";
+    std::cout << std::endl;
+}
+#+end_src
+
 ** Write a function that prints out the binary form of an int
 #+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/binaryIO.cpp
 #include <iostream>
@@ -433,6 +476,72 @@ int main()
 : 1110
 
 ** Implement parseInt
+
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/parseInt.cpp :results output
+#include <iostream>
+#include <cassert>
+
+namespace Details {
+
+// template meta functions for the values of Power 
+template <std::size_t LHS, std::size_t N>
+struct Pow
+{
+    constexpr static int value{LHS * Pow<LHS, N-1>::value}; 
+};
+
+template <std::size_t LHS>
+struct Pow<LHS, 0>
+{
+    constexpr static int value = 1;
+};
+
+// Template for 10 to the power of X
+template <std::size_t N>
+using TenPowX = Pow<10, N>; 
+
+constexpr int CharToInt(char a)
+{
+    assert(a >= '0' && a <= '9');
+    return a - '0';
+}
+
+template <std::size_t T, 
+    std::size_t N = T - 1,
+    std::size_t I = N - 1>
+typename std::enable_if<I == 0, int>::type ToIntegerImpl(const char (&data)[T])
+{
+    return CharToInt(data[I]) * TenPowX<N - 1>::value;
+}
+
+template <std::size_t T, 
+   std::size_t N = T - 1, 
+   std::size_t I = N - 1>
+typename std::enable_if<I >= 1, int>::type ToIntegerImpl(const char (&data)[T])
+{
+    return CharToInt(data[I]) * TenPowX<N - 1 - I>::value + ToIntegerImpl<T, N, I - 1>(data);
+}
+
+} // namespace Details
+
+template <std::size_t N>
+int ToInteger(const char (&data)[N])
+{
+    // strip off the /
+    return Details::ToIntegerImpl(data);
+}
+
+int main()
+{
+    std::cout << ToInteger("12456") << std::endl;
+    std::cout << ToInteger("0321") << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+| 12456 |
+|   321 |
+
 ** Implement squareroot function
 ** Implement an exponent function (bonus: now try in log(n) time)
 ** Write a multiply function that multiples 2 integers without using *
