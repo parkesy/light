@@ -1,9 +1,95 @@
+#+COLUMNS: %25ITEM
+#+BEGIN: columnview :hlines 1 
+| ITEM                                                                                                                                                    |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * General - programming questions                                                                                                                       |
+| ** Find                                                                                                                                                 |
+| *** Find the most frequent integer in an array                                                                                                          |
+| *** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)                                                               |
+| *** Find the only element in an array that only occurs once.                                                                                            |
+| *** Find the common elements of 2 int arrays                                                                                                            |
+| *** Use dynamic programming to find the first X prime numbers                                                                                           |
+| ** Search                                                                                                                                               |
+| *** Implement binary search of a sorted array of integers                                                                                               |
+| *** Implement binary search in a rotated array (ex. {5,6,7,8,1,2,3})                                                                                    |
+| ** Encoding                                                                                                                                             |
+| *** Write a function that prints out the binary form of an int                                                                                          |
+| ** Parse                                                                                                                                                |
+| *** Implement parseInt                                                                                                                                  |
+| ** Functions                                                                                                                                            |
+| *** Write fibbonaci iteratively and recursively (bonus: use dynamic programming)                                                                        |
+| *** Implement squareroot function                                                                                                                       |
+| *** Implement an exponent function                                                                                                                      |
+| *** Write a multiply function that multiples 2 integers without using *                                                                                 |
+| *** Given 2 integer arrays, determine of the 2nd array is a rotated version of the 1st array.                                                           |
+| ** Harder tasks                                                                                                                                         |
+| *** Given a 2D array of 1s and 0s, count the number of "islands of 1s" (e.g. groups of connecting 1s)                                                   |
+| *** Given a function rand5() that returns a random int between 0 and 5, implement rand7()                                                               |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * Strings                                                                                                                                               |
+| ** Find                                                                                                                                                 |
+| *** Find the first non-repeated character in a String                                                                                                   |
+| *** Find the shortest palindrome in a String                                                                                                            |
+| ** Manipulate                                                                                                                                           |
+| *** Reverse a String iteratively and recursively                                                                                                        |
+| *** HARD: Justify text                                                                                                                                  |
+| ** Observe                                                                                                                                              |
+| *** Determine if 2 Strings are anagrams                                                                                                                 |
+| *** Check if String is a palindrome                                                                                                                     |
+| *** Check if a String is composed of all unique characters                                                                                              |
+| *** Determine if a String is an int or a double                                                                                                         |
+| ** Transpose                                                                                                                                            |
+| *** HARD: Print all permutations of a String                                                                                                            |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * Trees                                                                                                                                                 |
+| ** Find                                                                                                                                                 |
+| ** TODO Find the smallest element in a BST                                                                                                              |
+| ** TODO Find the 2nd largest number in a BST                                                                                                            |
+| ** TODO Find the distance between 2 nodes in a BST and a normal binary tree                                                                             |
+| ** Manipulate                                                                                                                                           |
+| *** TODO Implement a BST with insert and delete functions                                                                                               |
+| ** TODO HARD: Construct a BST given the pre-order and in-order traversal Strings                                                                        |
+| ** Observe                                                                                                                                              |
+| ** TODO Print a tree using BFS and DFS                                                                                                                  |
+| ** TODO Write a function that determines if a tree is a BST                                                                                             |
+| ** TODO Write an algorithm to determine whether the tree is a valid sum tree                                                                            |
+| ** TODO Print the coordinates of every node in a binary tree, where root is 0,0                                                                         |
+| ** TODO Print a tree by levels                                                                                                                          |
+| ** TODO Given a tree, verify that it contains a subtree.                                                                                                |
+| ** TODO HARD: Find the max distance between 2 nodes in a BST.                                                                                           |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * Stacks, Queues, and Heaps                                                                                                                             |
+| ** TODO Implement a stack with push and pop functions                                                                                                   |
+| ** TODO Implement a queue with queue and dequeue functions                                                                                              |
+| ** TODO Find the minimum element in a stack in O(1) time                                                                                                |
+| ** TODO Write a function that sorts a stack (bonus: sort the stack in place without extra memory)                                                       |
+| ** TODO Implement a binary min heap. Turn it into a binary max heap                                                                                     |
+| ** TODO HARD: Implement a queue using 2 stacks                                                                                                          |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * Linked Lists                                                                                                                                          |
+| ** Implement a linked list (with insert and delete functions)                                                                                           |
+| ** TODO Find the Nth element in a linked list                                                                                                           |
+| ** TODO Remove the Nth element of a linked list                                                                                                         |
+| ** TODO Check if a linked list has cycles                                                                                                               |
+| ** TODO Given a circular linked list, find the node at the beginning of the loop. Example: A-->B-->C --> D-->E -->C, C is the node that begins the loop |
+| ** TODO Check whether a link list is a palindrome                                                                                                       |
+| ** TODO Reverse a linked list iteratively and recursively                                                                                               |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| * Sorting                                                                                                                                               |
+| ** Implement bubble sort                                                                                                                                |
+| ** Implement insertion sort                                                                                                                             |
+| ** Implement selection sort                                                                                                                             |
+| ** TODO Implement merge sort                                                                                                                            |
+| ** TODO Implement quick sort                                                                                                                            |
+#+END
+
 In this document I'll be collating interview questions that I've experienced or have heard and I'll try and suggest answers.
 
 As a rule I try and ask lots of questions about the task. So that I can try and understand best what the interviewer is asking.
 
 * General - programming questions
-** Find the most frequent integer in an array
+** Find 
+*** Find the most frequent integer in an array
 I'd like to get more context about the style of answer required. These are some followup questions:
 - Is the list of numbers known at compile time? Can we use template meta programming to reduce the work at compile time.
 - Whats the max possible value that we are going to get? Is it known. i.e. numeric_limit<int>::max etc. We could do some optimisation if we know the bounds of the data.
@@ -58,7 +144,7 @@ int main()
 Downsides: well its a map so allocations and lookups will slow it down.
 Lets say that we know the list at compile time and actually try and take advantage of that.
 
-** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)
+*** Find pairs in an integer array whose sum is equal to 10 (bonus: do it in linear time)
 So we have a array of integers. We need to identify pairs for which the sum is equal to ten.
 - Are all the integers positive?
 
@@ -86,82 +172,296 @@ int main()
 : 10 = 7 + 3
 : 10 = 13 + -3
 
-** Given 2 integer arrays, determine of the 2nd array is a rotated version of the 1st array. Ex. Original Array A={1,2,3,5,6,7,8} Rotated Array B={5,6,7,8,1,2,3}
-#+begin_src C++ :results output :flags --std=c++11
+*** Find the only element in an array that only occurs once.
+#+begin_src C++ :flags --std=c++11 :results output
 #include <iostream>
-#include <iterator>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
-bool ArrayRotMatch(int* lhs, int* rhs, int* lhsEnd, int* rhsEnd)
+template <typename T, std::size_t N>
+std::unordered_set<T> Distinct(T (&list)[N])
 {
+    std::unordered_set<T> distinct;
+    std::unordered_map<T,int> counts;
 
-    auto lItr = lhs;
-    auto rItr = rhs;
-    
-    // find begining of matching part
-    while (rItr != rhsEnd) 
-        if (*rItr == *lItr) 
-            break;
-        else 
-            ++rItr;
-    
-    bool possibleRotation = rItr != rhs;
-    auto rPartitionEnd = rItr;
-
-    // if you found the end then not all of lhs exists in rhs 
-    if (rItr == rhsEnd) 
-        return false;
-
-    while (rItr != rhsEnd)
-        if (*rItr != *lItr)
-            return false;
+    for(auto i : list)
+    {
+        auto count = ++counts[i];
+        if (count == 1)
+            distinct.insert(i);
         else
-        {
-            ++rItr;
-            ++lItr;
-        }
+            distinct.erase(i);
+    }
+    return distinct;
+}
 
-    return possibleRotation ? ArrayRotMatch(lItr, rhs, lhsEnd, rPartitionEnd) : true;
+int main()
+{
+	int a[] = {1,2,2,3,3,4,4,5};
+	for (auto i : Distinct(a))
+		std::cout << i << ", ";
+	std::cout << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 5, 1,
+
+*** Find the common elements of 2 int arrays
+Ok, so what this question is asking is to find the intersecting elements of two sets.
+
+#+begin_src C++ :flags -std=c++11 :results output
+#include <iostream>
+#include <unordered_set>
+
+template <typename T, std::size_t N, std::size_t Z>
+std::unordered_set<T> Intersect(T (&lhs)[N], T (&rhs)[Z])
+{
+    std::unordered_set<T> intersect;
+    for(auto i : lhs)
+       for(auto j : rhs)
+           if (i == j) 
+               intersect.insert(i);
+    return intersect;
 }
 
 int main()
 {
     {
-		int a[] = {1,2,3,4,5};
-		int b[] = {1,2,3,4,5};
-		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+        int a[] = {1,2,3,4,5};
+        int b[] = {5,6,7,8,9,4};
+        for (auto i : Intersect(a, b))
+            std::cout << i << ", ";
+        std::cout << std::endl;
     }
     {
-		int a[] = {1,2,3,4,5};
-		int b[] = {2,3,4,5,1};
-		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
-    }
-    {
-		int a[] = {1,2,3,4,5};
-		int b[] = {3,4,5,1,2};
-		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
-    }
-    {
-		int a[] = {1,2,3,4,5};
-		int b[] = {5,1,2,3,4};
-		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
-    }
-    
-    {
-		int a[] = {1,2,3,4,5};
-		int b[] = {3,4,5,1,3};
-		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+        int a[] = {1,2,3,4,5};
+        int b[] = {6,7,8,9};
+        for (auto i : Intersect(a, b))
+            std::cout << i << ", ";
+        std::cout << std::endl;
     }
 }
 #+end_src
 
 #+RESULTS:
-: T
-: T
-: T
-: T
-: F
+: 5, 4, 
+*** Use dynamic programming to find the first X prime numbers
+[[link:http://en.wikipedia.org/wiki/Dynamic_programming]["Dynamic Programming]] is a technique for solving complex problems by breaking them down into simpler sub-problems and optimal substructures". Dynamic programming uses memoization to cache results of simple calculations. 
 
-** Write fibbonaci iteratively and recursively (bonus: use dynamic programming)
+One technique for finding primes is the [[link:http://primes.utm.edu/notes/faq/six.html][6n -/+ 1]] technique shown below. This algorithm takes advantage previously discovered primes and reduces the amount of work required to calculate the next prime. 
+#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/primes.cpp
+#include <iostream>
+#include <vector>
+
+bool IsPrime(int x, const std::vector<int>& primes)
+{
+    if (x < 2) return false;
+    for (int k = 0; k < primes.size() && (primes[k] * primes[k]) < x; ++k)
+       if ((x % primes[k])== 0)
+           return false;
+    return true;
+}
+
+int DiscoverPrimes(int number, std::vector<int> & primes)
+{
+    primes.resize(number);
+    primes[1] = 1 + (primes[0] = 2);
+    
+    for (int k = 2, i = 6; k < number; i += 6)
+    {
+        // increment in 5 and 7s
+        int test = i - i;
+        if (IsPrime(test, primes))
+            primes[k++] = test;
+        test = i + 1;
+        if (k < number && IsPrime(test, primes))
+           primes[k++] = test;
+    }
+} 
+
+int main()
+{
+    std::vector<int> primes;
+    DiscoverPrimes(10, primes);
+
+    for(auto i : primes)
+        std::cout << i << " ";
+    std::cout << std::endl;
+}
+#+end_src
+** Search
+*** Implement binary search of a sorted array of integers
+#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/bsearch.cpp
+#include <iostream>
+#include <iterator>
+
+template <typename T, size_t N>
+auto SearchSorted(T (&list)[N], T target) -> decltype(std::begin(list))
+{
+    
+    auto beg = std::begin(list);
+    auto end = std::end(list);
+    int distance = std::distance(beg, end);
+    
+    while(1)
+    {
+		if (beg == end) return std::end(list);
+		auto itr = beg + (distance/2);
+		if (*itr == target) 
+			return itr;
+		else if (*itr < target)
+		{
+			distance = std::distance(itr + 1, end);
+			beg = itr + 1;
+		}
+		else // greater than
+		{
+			distance = std::distance(beg, itr);
+			end = itr;
+		}
+    }  
+}
+
+int main()
+{
+    int a[] = {1,2,3,4,5,6,7,8,9,11};
+    for(int i : a)
+    {
+        auto item = SearchSorted(a, i);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, 10);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, 12);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+    {
+        auto item = SearchSorted(a, -2);
+        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
+            << (item != std::end(a) ? *item : -1) << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Found! value: 1
+Found! value: 2
+Found! value: 3
+Found! value: 4
+Found! value: 5
+Found! value: 6
+Found! value: 7
+Found! value: 8
+Found! value: 9
+Found! value: 11
+!Found value: -1
+!Found value: -1
+!Found value: -1
+#+end_example
+
+*** Implement binary search in a rotated array (ex. {5,6,7,8,1,2,3})
+** Encoding
+***  Write a function that prints out the binary form of an int
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/binaryIO.cpp
+#include <iostream>
+#include <string>
+
+void ToBinary(int i)
+{
+    unsigned int mask = ~0;
+    mask = mask ^ mask >> 1;
+    do
+    {
+        std::cout << bool(i & mask);
+    } while (mask = ma  sk >> 1);
+}
+
+int main()
+{
+    ToBinary(14);
+}
+#+end_src
+
+#+RESULTS:
+: 1110
+** Parse
+*** Implement parseInt
+
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/parseInt.cpp :results output
+#include <iostream>
+#include <cassert>
+
+namespace Details {
+
+// template meta functions for the values of Power 
+template <std::size_t LHS, std::size_t N>
+struct Pow
+{
+    constexpr static int value{LHS * Pow<LHS, N-1>::value}; 
+};
+
+template <std::size_t LHS>
+struct Pow<LHS, 0>
+{
+    constexpr static int value = 1;
+};
+
+// Template for 10 to the power of X
+template <std::size_t N>
+using TenPowX = Pow<10, N>; 
+
+constexpr int CharToInt(char a)
+{
+    assert(a >= '0' && a <= '9');
+    return a - '0';
+}
+
+template <std::size_t T, 
+    std::size_t N = T - 1,
+    std::size_t I = N - 1>
+typename std::enable_if<I == 0, int>::type ToIntegerImpl(const char (&data)[T])
+{
+    return CharToInt(data[I]) * TenPowX<N - 1>::value;
+}
+
+template <std::size_t T, 
+   std::size_t N = T - 1, 
+   std::size_t I = N - 1>
+typename std::enable_if<I >= 1, int>::type ToIntegerImpl(const char (&data)[T])
+{
+    return CharToInt(data[I]) * TenPowX<N - 1 - I>::value + ToIntegerImpl<T, N, I - 1>(data);
+}
+
+} // namespace Details
+
+template <std::size_t N>
+int ToInteger(const char (&data)[N])
+{
+    // strip off the /
+    return Details::ToIntegerImpl(data);
+}
+
+int main()
+{
+    std::cout << ToInteger("12456") << std::endl;
+    std::cout << ToInteger("0321") << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+| 12456 |
+|   321 |
+** Functions
+*** Write fibbonaci iteratively and recursively (bonus: use dynamic programming)
 Iterative
 #+begin_src C++
 
@@ -253,298 +553,10 @@ int main()
 #+RESULTS:
 : 8
 
-** Find the only element in an array that only occurs once.
-#+begin_src C++ :flags --std=c++11 :results output
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
-
-template <typename T, std::size_t N>
-std::unordered_set<T> Distinct(T (&list)[N])
-{
-    std::unordered_set<T> distinct;
-    std::unordered_map<T,int> counts;
-
-    for(auto i : list)
-    {
-        auto count = ++counts[i];
-        if (count == 1)
-            distinct.insert(i);
-        else
-            distinct.erase(i);
-    }
-    return distinct;
-}
-
-int main()
-{
-	int a[] = {1,2,2,3,3,4,4,5};
-	for (auto i : Distinct(a))
-		std::cout << i << ", ";
-	std::cout << std::endl;
-}
-#+end_src
-
-#+RESULTS:
-: 5, 1,
-
-** Find the common elements of 2 int arrays
-Ok, so what this question is asking is to find the intersecting elements of two sets.
-
-#+begin_src C++ :flags -std=c++11 :results output
-#include <iostream>
-#include <unordered_set>
-
-template <typename T, std::size_t N, std::size_t Z>
-std::unordered_set<T> Intersect(T (&lhs)[N], T (&rhs)[Z])
-{
-    std::unordered_set<T> intersect;
-    for(auto i : lhs)
-       for(auto j : rhs)
-           if (i == j) 
-               intersect.insert(i);
-    return intersect;
-}
-
-int main()
-{
-    {
-        int a[] = {1,2,3,4,5};
-        int b[] = {5,6,7,8,9,4};
-        for (auto i : Intersect(a, b))
-            std::cout << i << ", ";
-        std::cout << std::endl;
-    }
-    {
-        int a[] = {1,2,3,4,5};
-        int b[] = {6,7,8,9};
-        for (auto i : Intersect(a, b))
-            std::cout << i << ", ";
-        std::cout << std::endl;
-    }
-}
-#+end_src
-
-#+RESULTS:
-: 5, 4,
-
-** Implement binary search of a sorted array of integers
-#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/bsearch.cpp
-#include <iostream>
-#include <iterator>
-
-template <typename T, size_t N>
-auto SearchSorted(T (&list)[N], T target) -> decltype(std::begin(list))
-{
-    
-    auto beg = std::begin(list);
-    auto end = std::end(list);
-    int distance = std::distance(beg, end);
-    
-    while(1)
-    {
-		if (beg == end) return std::end(list);
-		auto itr = beg + (distance/2);
-		if (*itr == target) 
-			return itr;
-		else if (*itr < target)
-		{
-			distance = std::distance(itr + 1, end);
-			beg = itr + 1;
-		}
-		else // greater than
-		{
-			distance = std::distance(beg, itr);
-			end = itr;
-		}
-    }  
-}
-
-int main()
-{
-    int a[] = {1,2,3,4,5,6,7,8,9,11};
-    for(int i : a)
-    {
-        auto item = SearchSorted(a, i);
-        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
-            << (item != std::end(a) ? *item : -1) << std::endl;
-    }
-    {
-        auto item = SearchSorted(a, 10);
-        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
-            << (item != std::end(a) ? *item : -1) << std::endl;
-    }
-    {
-        auto item = SearchSorted(a, 12);
-        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
-            << (item != std::end(a) ? *item : -1) << std::endl;
-    }
-    {
-        auto item = SearchSorted(a, -2);
-        std::cout << (item == std::end(a) ? "!Found" : "Found!") << " value: " 
-            << (item != std::end(a) ? *item : -1) << std::endl;
-    }
-}
-#+end_src
-
-#+RESULTS:
-#+begin_example
-Found! value: 1
-Found! value: 2
-Found! value: 3
-Found! value: 4
-Found! value: 5
-Found! value: 6
-Found! value: 7
-Found! value: 8
-Found! value: 9
-Found! value: 11
-!Found value: -1
-!Found value: -1
-!Found value: -1
-#+end_example
-
-** Implement binary search in a rotated array (ex. {5,6,7,8,1,2,3})
-** Use dynamic programming to find the first X prime numbers
-[[link:http://en.wikipedia.org/wiki/Dynamic_programming]["Dynamic Programming]] is a technique for solving complex problems by breaking them down into simpler sub-problems and optimal substructures". Dynamic programming uses memoization to cache results of simple calculations. 
-
-One technique for finding primes is the [[link:http://primes.utm.edu/notes/faq/six.html][6n -/+ 1]] technique shown below. This algorithm takes advantage previously discovered primes and reduces the amount of work required to calculate the next prime. 
-#+begin_src C++ :flags --std=c++11 :results output :tangle yes :tangle src/primes.cpp
-#include <iostream>
-#include <vector>
-
-bool IsPrime(int x, const std::vector<int>& primes)
-{
-    if (x < 2) return false;
-    for (int k = 0; k < primes.size() && (primes[k] * primes[k]) < x; ++k)
-       if ((x % primes[k])== 0)
-           return false;
-    return true;
-}
-
-int DiscoverPrimes(int number, std::vector<int> & primes)
-{
-    primes.resize(number);
-    primes[1] = 1 + (primes[0] = 2);
-    
-    for (int k = 2, i = 6; k < number; i += 6)
-    {
-        // increment in 5 and 7s
-        int test = i - i;
-        if (IsPrime(test, primes))
-            primes[k++] = test;
-        test = i + 1;
-        if (k < number && IsPrime(test, primes))
-           primes[k++] = test;
-    }
-} 
-
-int main()
-{
-    std::vector<int> primes;
-    DiscoverPrimes(10, primes);
-
-    for(auto i : primes)
-        std::cout << i << " ";
-    std::cout << std::endl;
-}
-#+end_src
-
-** Write a function that prints out the binary form of an int
-#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/binaryIO.cpp
-#include <iostream>
-#include <string>
-
-void ToBinary(int i)
-{
-    unsigned int mask = ~0;
-    mask = mask ^ mask >> 1;
-    do
-    {
-        std::cout << bool(i & mask);
-    } while (mask = ma  sk >> 1);
-}
-
-int main()
-{
-    ToBinary(14);
-}
-#+end_src
-
-#+RESULTS:
-: 1110
-
-** Implement parseInt
-
-#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/parseInt.cpp :results output
-#include <iostream>
-#include <cassert>
-
-namespace Details {
-
-// template meta functions for the values of Power 
-template <std::size_t LHS, std::size_t N>
-struct Pow
-{
-    constexpr static int value{LHS * Pow<LHS, N-1>::value}; 
-};
-
-template <std::size_t LHS>
-struct Pow<LHS, 0>
-{
-    constexpr static int value = 1;
-};
-
-// Template for 10 to the power of X
-template <std::size_t N>
-using TenPowX = Pow<10, N>; 
-
-constexpr int CharToInt(char a)
-{
-    assert(a >= '0' && a <= '9');
-    return a - '0';
-}
-
-template <std::size_t T, 
-    std::size_t N = T - 1,
-    std::size_t I = N - 1>
-typename std::enable_if<I == 0, int>::type ToIntegerImpl(const char (&data)[T])
-{
-    return CharToInt(data[I]) * TenPowX<N - 1>::value;
-}
-
-template <std::size_t T, 
-   std::size_t N = T - 1, 
-   std::size_t I = N - 1>
-typename std::enable_if<I >= 1, int>::type ToIntegerImpl(const char (&data)[T])
-{
-    return CharToInt(data[I]) * TenPowX<N - 1 - I>::value + ToIntegerImpl<T, N, I - 1>(data);
-}
-
-} // namespace Details
-
-template <std::size_t N>
-int ToInteger(const char (&data)[N])
-{
-    // strip off the /
-    return Details::ToIntegerImpl(data);
-}
-
-int main()
-{
-    std::cout << ToInteger("12456") << std::endl;
-    std::cout << ToInteger("0321") << std::endl;
-}
-#+end_src
-
-#+RESULTS:
-| 12456 |
-|   321 |
-
-** Implement squareroot function
-** Implement an exponent function (bonus: now try in log(n) time)
-** Write a multiply function that multiples 2 integers without using *
+*** Implement squareroot function
+*** Implement an exponent function 
+try in log(n) time
+*** Write a multiply function that multiples 2 integers without using *
 Cheating answer
 #+begin_src C++ 
 #include <iostream>
@@ -553,9 +565,84 @@ int main()
     std::cout << 6 / (1.0/6);
 }
 #+end_src
+*** Given 2 integer arrays, determine of the 2nd array is a rotated version of the 1st array.
+Original Array A={1,2,3,5,6,7,8} Rotated Array B={5,6,7,8,1,2,3}
+#+begin_src C++ :results output :flags --std=c++11
+#include <iostream>
+#include <iterator>
 
-** HARD: Given a function rand5() that returns a random int between 0 and 5, implement rand7()
-** HARD: Given a 2D array of 1s and 0s, count the number of "islands of 1s" (e.g. groups of connecting 1s)
+bool ArrayRotMatch(int* lhs, int* rhs, int* lhsEnd, int* rhsEnd)
+{
+
+    auto lItr = lhs;
+    auto rItr = rhs;
+    
+    // find begining of matching part
+    while (rItr != rhsEnd) 
+        if (*rItr == *lItr) 
+            break;
+        else 
+            ++rItr;
+    
+    bool possibleRotation = rItr != rhs;
+    auto rPartitionEnd = rItr;
+
+    // if you found the end then not all of lhs exists in rhs 
+    if (rItr == rhsEnd) 
+        return false;
+
+    while (rItr != rhsEnd)
+        if (*rItr != *lItr)
+            return false;
+        else
+        {
+            ++rItr;
+            ++lItr;
+        }
+
+    return possibleRotation ? ArrayRotMatch(lItr, rhs, lhsEnd, rPartitionEnd) : true;
+}
+
+int main()
+{
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {1,2,3,4,5};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {2,3,4,5,1};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {3,4,5,1,2};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {5,1,2,3,4};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+    
+    {
+		int a[] = {1,2,3,4,5};
+		int b[] = {3,4,5,1,3};
+		std::cout << (ArrayRotMatch(std::begin(a), std::begin(b), std::end(a), std::end(b)) ? "T" : "F") << std::endl;
+    }
+}
+#+end_src
+
+#+RESULTS:
+: T
+: T
+: T
+: T
+: F
+** Harder tasks
+These tasks are slightly harder than the above tasks
+*** Given a 2D array of 1s and 0s, count the number of "islands of 1s" (e.g. groups of connecting 1s)
 Thoughts: 
 - I'm going to consider this as an island; i.e. A 1 that is complete girt by sea.
 | 0 | 0 | 0 |
@@ -658,10 +745,14 @@ int main()
 | 0 | 0 | 0 | 0 | 1 | 1 |
 | 0 | 3 | 0 | 0 | 0 | 0 |
 | 0 | 3 | 3 | 3 | 3 | 0 |
+*** Given a function rand5() that returns a random int between 0 and 5, implement rand7()
 
 * Strings
-** Find the first non-repeated character in a String
-** Reverse a String iteratively and recursively
+** Find
+*** Find the first non-repeated character in a String
+*** Find the shortest palindrome in a String
+** Manipulate
+*** Reverse a String iteratively and recursively
 Iteratively
 #+begin_src C++ :flags --std=c++11
 #include <iostream>
@@ -759,8 +850,10 @@ int main()
 
 #+RESULTS:
 :  olleH !dlrow
-
-** Determine if 2 Strings are anagrams
+*** HARD: Justify text 
+Given a single-line text String and a maximum width value, write the function 'String justify(String text, int maxWidth)' that formats the input text using full-justification, i.e., extra spaces on each line are equally distributed between the words; the first word on each line is flushed left and the last word on each line is flushed right
+** Observe
+*** Determine if 2 Strings are anagrams
  
 There might be a better way of doing this.
 I ignored spaces...
@@ -813,8 +906,8 @@ int main()
 : Are Button and Mutton anagrams ? NO!
 : ints!? YES
 
-** TODO Check if String is a palindrome
-Iteratively
+*** Check if String is a palindrome
+Iterative solution
 #+begin_src C++ :flags --std=c++11
 #include <iostream>
 
@@ -862,7 +955,7 @@ int main()
 | Yes |
 
 
-Recursively
+Recursively solution
 #+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/palindrome-rec.cpp :results output
 #include <iostream>
 
@@ -903,7 +996,7 @@ int main()
 }
 #+end_src
 
-Meta
+Meta solution
 #+begin_src C++ :flags --std=c++11
 #include <iostream>
 
@@ -953,67 +1046,330 @@ int main()
 | Yes |
 | Yes |
 
-** Check if a String is composed of all unique characters
-** Determine if a String is an int or a double
-** HARD: Find the shortest palindrome in a String
-** HARD: Print all permutations of a String
-** HARD: Given a single-line text String and a maximum width value, write the function 'String justify(String text, int maxWidth)' that formats the input text using full-justification, i.e., extra spaces on each line are equally distributed between the words; the first word on each line is flushed left and the last word on each line is flushed right
+*** Check if a String is composed of all unique characters
+*** Determine if a String is an int or a double
+** Transpose
+*** HARD: Print all permutations of a String
 * Trees
-** Implement a BST with insert and delete functions
-** Print a tree using BFS and DFS
-** Write a function that determines if a tree is a BST
-** Find the smallest element in a BST
-** Find the 2nd largest number in a BST
-** Given a binary tree which is a sum tree (child nodes add to parent), write an algorithm to determine whether the tree is a valid sum tree
-** Find the distance between 2 nodes in a BST and a normal binary tree
-** Print the coordinates of every node in a binary tree, where root is 0,0
-** Print a tree by levels
-** Given a binary tree which is a sum tree, write an algorithm to determine whether the tree is a valid sum tree
-** Given a tree, verify that it contains a subtree.
-** HARD: Find the max distance between 2 nodes in a BST.
-** HARD: Construct a BST given the pre-order and in-order traversal Strings
+** Find
+** TODO Find the smallest element in a BST
+** TODO Find the 2nd largest number in a BST
+** TODO Find the distance between 2 nodes in a BST and a normal binary tree
+** Manipulate
+*** TODO Implement a BST with insert and delete functions
+** TODO HARD: Construct a BST given the pre-order and in-order traversal Strings
+** Observe
+** TODO Print a tree using BFS and DFS
+** TODO Write a function that determines if a tree is a BST
+** TODO Write an algorithm to determine whether the tree is a valid sum tree
+Given a binary tree which is a sum tree (child nodes add to parent), 
+** TODO Print the coordinates of every node in a binary tree, where root is 0,0
+** TODO Print a tree by levels
+** TODO Given a tree, verify that it contains a subtree.
+** TODO HARD: Find the max distance between 2 nodes in a BST.
 * Stacks, Queues, and Heaps
-** Implement a stack with push and pop functions
-** Implement a queue with queue and dequeue functions
-** Find the minimum element in a stack in O(1) time
-** Write a function that sorts a stack (bonus: sort the stack in place without extra memory)
-** Implement a binary min heap. Turn it into a binary max heap
-** HARD: Implement a queue using 2 stacks
+** TODO Implement a stack with push and pop functions
+** TODO Implement a queue with queue and dequeue functions
+** TODO Find the minimum element in a stack in O(1) time
+** TODO Write a function that sorts a stack (bonus: sort the stack in place without extra memory)
+** TODO Implement a binary min heap. Turn it into a binary max heap
+** TODO HARD: Implement a queue using 2 stacks
 * Linked Lists
 ** Implement a linked list (with insert and delete functions)
-** Find the Nth element in a linked list
-** Remove the Nth element of a linked list
-** Check if a linked list has cycles
-** Given a circular linked list, find the node at the beginning of the loop. Example: A-->B-->C --> D-->E -->C, C is the node that begins the loop
-** Check whether a link list is a palindrome
-** Reverse a linked list iteratively and recursively
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/linkedlist.hpp :main no 
+#pragma once 
+
+// When creating a container data structure you should template the container on
+// the users desired data type. This has the rather obvious benifit of increasing
+// usability while reducing maintainable code.
+template <typename typeT>
+class LinkedList
+{
+    // Within a link list you need to beable to store a couple of things
+    // 1. the payload; i.e. The data that the user wants you to store
+    // 2. linking info; i.e. where to traverse to next.
+    //    oftehn you'd have a next and previous pointer.
+    struct Node 
+    {
+        // payload
+        typeT mData;
+        // link
+        Node* mNext; 
+        // Node* mPrev;
+    };
+    
+    // A link list will need a pointer to the first element so that it can keep
+    // track of the growing list of nodes.
+    Node* mHead{nullptr};
+
+    // A very simple construct method. I don't really want to have news everywhere
+    // Another option would be to use std::unique<Node> insted of Node*.
+    Node* CreateNode(typeT value);
+
+    void DeleteNextNode(Node*& loc);
+  
+public:
+    // Quick set of type defs that might be usable for user.
+    using nodeptr = Node*;
+    using type = typeT;
+    
+    // try and keep the stl standard naming scheme.
+    bool empty(); 
+
+    void push_back(type value);
+    
+    // the implementation is easy so its just added here.
+    void push_front(type value);
+    
+    // there are a couple of different ways to request deletion of a node
+    // we can ask for:
+    // - an explict node to be delete
+    // - an node indicated by a index to be delete.
+    // You might later make delete Nth of value functions... but that seems a bit much ATM.
+    void erase (nodeptr target);
+    void erase (int targetIndex);
+
+    type operator[](int i);
+
+private:
+    void InsertAt(nodeptr previous, nodeptr node);
+}; 
+#+end_src 
+
+#+begin_src C++ :flags --std=c++11 :tangle yes :tangle src/linkedlist.ipp :main no
+#include "src/linkedlist.hpp"
+
+template <typename T>
+typename LinkedList<T>::nodeptr LinkedList<T>::CreateNode(type value)
+{
+    return new Node{value, nullptr}; 
+}
+
+template <typename T>
+void LinkedList<T>::DeleteNextNode(Node*& loc)
+{
+	auto curr = loc;
+	loc = curr->mNext;
+	delete curr;
+}
+
+template <typename T>  
+bool LinkedList<T>::empty()
+{ 
+    return mHead == nullptr;
+}
+
+template <typename T>  
+void LinkedList<T>::push_front(type value)
+{
+	auto curr = mHead;
+	mHead = CreateNode(value);
+	mHead->mNext = curr;
+}
+    
+template <typename T>  
+void LinkedList<T>::InsertAt(nodeptr previous, nodeptr node)
+{
+	node->mNext = previous->mNext;
+	previous->mNext = node;
+}
+ 
+template <typename T>
+void LinkedList<T>::push_back(type value)
+{
+    if (empty())
+        push_front(value);
+    else
+    {
+        auto curr = mHead;
+        while(curr->mNext)
+            curr = curr->mNext;
+        InsertAt(curr, CreateNode(value));
+    }
+}
+
+template <typename T>
+void LinkedList<T>::erase (int targetIndex)
+{
+    auto curr = mHead;
+    for(int i = 0; i < targetIndex && curr != nullptr ; ++i)
+        curr = curr->mNext;
+
+    if (curr)
+        DeleteNextNode(curr == mHead? mHead : curr);
+}
+
+template <typename T>
+typename LinkedList<T>::type LinkedList<T>::operator[](int targetIndex) 
+{
+    auto curr = mHead;
+    for(int i = 0; i < targetIndex && curr != nullptr ; ++i)
+        curr = curr->mNext;
+    if (curr)
+        return curr->mData;
+    throw 1; 
+}
+#+end_src
+
+#+begin_src C++ :flags --std=c++11 -I ~/light/c++ :tangle yes :tangle src/linkedlist-add-delete.cpp :results output
+#include "src/linkedlist.ipp"
+
+#include <iostream>
+
+int main()
+{
+    LinkedList<int> a;
+    a.push_back(1);
+    a.push_back(2);
+    a.push_back(3);
+
+    std::cout << a[0] << ", ";
+    std::cout << a[1] << ", ";
+    std::cout << a[2]  << std::endl;
+    a.erase(0);
+    std::cout << a[0] << ", " ;
+    std::cout << a[1] << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 1, 2, 3
+: 2, 3
+
+** TODO Find the Nth element in a linked list
+** TODO Remove the Nth element of a linked list
+** TODO Check if a linked list has cycles
+** TODO Given a circular linked list, find the node at the beginning of the loop. Example: A-->B-->C --> D-->E -->C, C is the node that begins the loop
+** TODO Check whether a link list is a palindrome
+** TODO Reverse a linked list iteratively and recursively
 * Sorting
 ** Implement bubble sort
-** Implement selection sort
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+#include <functional>
+#include <iterator>
+#include <algorithm>
+
+template <
+    template <typename> class ComparitorT_Type,
+    typename T, std::size_t N, 
+    typename Comparitor = ComparitorT_Type<T>>
+void BubbleSort(T (&list)[N])
+{
+    Comparitor comparitor;
+    for (int i = 0; i < N; ++i)
+       for(int j = 1; j < N; ++j)
+       {
+           if (comparitor(list[j - 1], list[i]))
+               std::swap(list[j - 1], list[i]);
+       }
+}
+
+int main()
+{
+     int a[] = {1,5,2,3,7};
+     BubbleSort<std::less>(a);
+
+     std::ostream_iterator<int> out(std::cout, ", ");
+     std::copy(std::begin(a), std::end(a), out);
+}
+#+end_src
+
+#+RESULTS:
+| 7 | 5 | 3 | 2 | 1 |
+
 ** Implement insertion sort
-** Implement merge sort
-** Implement quick sort
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+#include <functional>
+#include <iterator>
+#include <algorithm>
 
+template <
+    template <typename> class ComparitorT_Type,
+    typename T, std::size_t N, 
+    typename Comparitor=ComparitorT_Type<T>>
+void SelectionSort(T (&list)[N])
+{
+    Comparitor comparitor;
+    for (int i = 0; i < N; ++i)
+       for (int j = i + 1; j < N; ++j)
+       {
+           if (comparitor(list[i], list[j]))
+               std::swap(list[i], list[j]);
+       }
+}
 
-#+begin_src R :results output :session *R*
-x <- matrix(c(12, 5, 7, 7), ncol = 2)
-#+end_src
+int main()
+{
+     int a[] = {1,5,2,3,7};
+     SelectionSort<std::less>(a);
 
-#+begin_src R :results output :session *R*
-chisq.test(x)
+     std::ostream_iterator<int> out(std::cout, ", ");
+     std::copy(std::begin(a), std::end(a), out);
+}
 #+end_src
 
 #+RESULTS:
-: 
-: 	Pearson's Chi-squared test with Yates' continuity correction
-: 
-: data:  x
-: X-squared = 0.6411, df = 1, p-value = 0.4233
+| 7 | 5 | 3 | 2 | 1 |
 
+** Implement selection sort
 
-#+begin_src R :results graphic :session *R*
-hist(x)
+** TODO Implement merge sort
+** TODO Implement quick sort
+* Template Programming
+** Demonstrate CRTP
+*** CRTP explained
+CRTP stands for curiously recursive template patter. Its equivalent to dynamic polymorphism except it is the static variant. 
+| Pros                                                                                             | Cons                                  |
+|--------------------------------------------------------------------------------------------------+---------------------------------------|
+| It lets you define an interface and mandates that any derived type fully implement the interface | By definition is static               |
+| It lets the compiler aggressively optimise the code                                              | Can not hold a heterogeneous sequence |
+|                                                                                                  | Unconventional use of inheritance     |
+| Helps increase maintainability of templated frameworks                                           |                                       |
+| The ladies love it!!                                                                             |                                       |
+
+#+begin_src C++ :flags --std=c++11
+#include <iostream>
+
+// So there is the interface...
+// First thing to note is that the interface is templated and it inherits the functionality from the templated type
+template <typename Derived>
+class Interface : public Derived
+{
+public:
+    // we then dispatch to the derived type for the implementation 
+    void Foo() { Derived::Foo(); }
+};
+
+// below are two implementations of the interface 
+class InterfaceImpl
+{
+public:
+    void Foo() { std::cout << __FUNCTION__ << " : " << __LINE__ << std::endl; }
+};
+
+class InterfaceImpl2
+{
+public:
+    void Foo() { std::cout << __FUNCTION__ << " : " << __LINE__ << std::endl; }
+};
+
+int main()
+{
+    {
+		Interface<InterfaceImpl> i;
+		i.Foo();
+    }
+    
+    {
+        Interface<InterfaceImpl2> i;
+        i.Foo();
+    }
+}
 #+end_src
 
 #+RESULTS:
+| Foo | : | 16 |
+| Foo | : | 22 |
 

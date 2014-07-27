@@ -1,0 +1,63 @@
+This document will describe the R function called Reduce.
+
+* Introducing Reduce
+Reduce is an R function that takes:
+- as its first argument binary function 
+#+begin_src R 
+function(acu, elm) { }
+#+end_src
+- as its second argument it takes a vector
+
+It applies the function f over the elements of the vector one at a time. 
+
+#+begin_src R 
+Reduce(function(acu, elm) return(acu + elm), c(1,2,3))
+#+end_src 
+
+#+RESULTS:
+: 6
+
+So what happened in the above example. The left hand element, which I've called acu, is initialised to zero and elm is the first element of the vector. in the next iteration the return value from the previous iteration is used as the left hand side (acu) and the next value is given as the right hand side parameter.
+So we will end up with:
+| Iteration | acu | elm | function return value |
+|-----------+-----+-----+-----------------------|
+|         1 |   0 |   1 | 1                     |
+|         2 |   1 |   2 | 3                     |
+|         3 |   3 |   3 | 6                     |
+|           |     |     |                       |rt
+
+We can get Reduce to show the accumulated value at the end of each iteration. 
+#+begin_src R :results output
+Reduce(function(acu, elm) return(acu + elm), c(1,2,3), accumulate = TRUE)
+#+end_src 
+
+#+RESULTS:
+: [1] 1 3 6
+
+We can also initialise the accumulator to whatever we'd like. 
+#+begin_src R :results output
+Reduce(function(acu, elm) return(acu + elm), c(1,2,3), accumulate = TRUE, init=1)
+#+end_src 
+
+#+RESULTS:
+: [1] 1 2 4 7
+Interestingly R looks like it prepends the init value to first accumulate step.
+
+
+So lets do something a little be more interesting. We'll build a compounding interest function
+#+begin_src R :results output
+CalculateCompooundingInterest <- function (startingValue, interest, numberOfPeriods, showEachPeriod)
+    Reduce(function(acu, elm)
+        return(acu + acu * interest), seq(1, numberOfPeriods)
+    , 
+    accumulate = showEachPeriod, 
+    init=startingValue)
+
+CalculateCompooundingInterest(350000, 0.025, 5, TRUE)
+CalculateCompooundingInterest(350000, 0.025, 5, FALSE)
+#+end_src 
+
+#+RESULTS:
+: [1] 350000.0 358750.0 367718.8 376911.7 386334.5 395992.9
+: [1] 395992.9
+

@@ -1,3 +1,10 @@
+#+BEGIN: columnview :hlines 1
+| ITEM          | TODO | PRIORITY | TAGS |
+|---------------+------+----------+------|
+| * Light work. |      |          |      |
+| ** Setup      |      |          |      |
+#+END
+
 * Light work.
 This repository is a collection small collection of work. Its mainly an area where I will be exploring techniques and technologies. [[file:dedication.org][Dedicated to...]]
 
@@ -13,8 +20,8 @@ done
 #+end_src
 
 #+RESULTS:
-| 7 projects in the [[file:c++][c++]] directory        |
-| 2 projects in the [[file:emacs][emacs]] directory      |
+| 10 projects in the [[file:c++][c++]] directory       |
+| 3 projects in the [[file:emacs][emacs]] directory      |
 | 1 projects in the [[file:git][git]] directory        |
 | 1 projects in the [[file:lisp][lisp]] directory       |
 | 1 projects in the [[file:lisp+c++][lisp+c++]] directory   |

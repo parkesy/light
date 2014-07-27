@@ -1,3 +1,11 @@
+#+BEGIN: columnview :hlines 1
+| ITEM                                              | TODO | PRIORITY | TAGS |
+|---------------------------------------------------+------+----------+------|
+| ** Quick Baseline test                            |      |          |      |
+| *** Test 1. Simple bench marking test             |      |          |      |
+| **** Check with no optimisation (g++ -O0)         |      |          |      |
+| **** Check with aggressive optimisation (g++ -O3) |      |          |      |
+#+END
 This document will export the C++ development idiom that is called Pimpl. If your thinking WTF is Pimpl, think Pointer to Implementation.
 
 Here is a simple example.

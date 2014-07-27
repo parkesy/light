@@ -1,4 +1,14 @@
-In this document I'll be experimenting with Rcpp and some c++ techniques.
+#+BEGIN: columnview :hlines 1
+| ITEM                                                 | TAGS                  |
+|------------------------------------------------------+-----------------------|
+| * Test application: Create a .so to load into R.     | :R:Rcpp:Cpp::Dynamic: |
+|------------------------------------------------------+-----------------------|
+| * Calling User defined R functions from with in Rcpp | :R:Rcpp:Cpp:Dynamic:  |
+#+END
+
+
+
+In this document I'll be experimenting with Rcpp and some c++ techniques. I 'm particularly interested in c++ code that is loaded from a .so file, using R's dyn.load function. I like this idea because I'm not limited in what my .so can do. 
 
 * Test application: Create a .so to load into R.		:R:Rcpp:Cpp::Dynamic:
 So first off we will create a simple cpp with a couple of token function.
@@ -37,7 +47,6 @@ dyn.load('cpp/Rcpp/helloworld.so')
 #+RESULTS:
 : [1] "Hello world"
 : [1] 6
-
 
 * Calling User defined R functions from with in Rcpp 	 :R:Rcpp:Cpp:Dynamic:
 So this time I'd like to call a user defined R function from inside of Rcpp...
