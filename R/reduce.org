@@ -43,7 +43,7 @@ Reduce(function(acu, elm) return(acu + elm), c(1,2,3), accumulate = TRUE, init=1
 : [1] 1 2 4 7
 Interestingly R looks like it prepends the init value to first accumulate step.
 
-** reduce example
+** Reduce example
 So lets do something a little be more interesting. We'll build a compounding interest function. This is a slightly different use of reduce. You'll notice that we aren't really using the elm parameter. What we are doing is:
 initialising the accumulator to be equal to the startingValue, then we are performing a compounding interest calculation over and over (from 1 to N) where N equals the numberOfPeriods. 
 
