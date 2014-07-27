@@ -126,3 +126,15 @@ Map(function(x) x, d)
 : Levels: 11 12 13 14 15 16 17 18 19
 : 
 
+** Using Map to plot dataframes
+I just want to quickly use Map to plot data in each column. Its quite obvious that Map will do this.
+
+#+begin_src R :file img/plots.jpg :results output graphics :width 1000
+d <- data.frame(a=seq(1,9), b=as.character(seq(11,19)))
+layout(matrix(c(1,2), ncol=2))
+Map(function(arg) plot(arg, col="blue", type="l"), d)
+#+end_src
+
+#+RESULTS:
+[[file:img/plots.jpg]]
+
