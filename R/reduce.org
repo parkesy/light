@@ -8,7 +8,7 @@ function(acu, elm) { }
 #+end_src
 - as its second argument it takes a vector
 
-It applies the function f over the elements of the vector one at a time. 
+It applies the function (f) over the elements of the vector one at a time. 
 
 #+begin_src R 
 Reduce(function(acu, elm) return(acu + elm), c(1,2,3))
@@ -17,14 +17,14 @@ Reduce(function(acu, elm) return(acu + elm), c(1,2,3))
 #+RESULTS:
 : 6
 
-So what happened in the above example. The left hand element, which I've called acu, is initialised to zero and elm is the first element of the vector. in the next iteration the return value from the previous iteration is used as the left hand side (acu) and the next value is given as the right hand side parameter.
+What happened in the above example. The first parameter, which I've called acu, is the accumulator and is initialised to zero. It will store the previous return value from the binary function (f). The second parameter, which I've called elm, is the first element of the vector. In the next iteration the return value from the previous iteration is used as the first parameter (acu) and the next value in the vector is given as the second parameter.
 So we will end up with:
 | Iteration | acu | elm | function return value |
 |-----------+-----+-----+-----------------------|
 |         1 |   0 |   1 | 1                     |
 |         2 |   1 |   2 | 3                     |
 |         3 |   3 |   3 | 6                     |
-|           |     |     |                       |rt
+|           |     |     |                       |
 
 We can get Reduce to show the accumulated value at the end of each iteration. 
 #+begin_src R :results output
@@ -43,8 +43,10 @@ Reduce(function(acu, elm) return(acu + elm), c(1,2,3), accumulate = TRUE, init=1
 : [1] 1 2 4 7
 Interestingly R looks like it prepends the init value to first accumulate step.
 
+** reduce example
+So lets do something a little be more interesting. We'll build a compounding interest function. This is a slightly different use of reduce. You'll notice that we aren't really using the elm parameter. What we are doing is:
+initialising the accumulator to be equal to the startingValue, then we are performing a compounding interest calculation over and over (from 1 to N) where N equals the numberOfPeriods. 
 
-So lets do something a little be more interesting. We'll build a compounding interest function
 #+begin_src R :results output
 CalculateCompooundingInterest <- function (startingValue, interest, numberOfPeriods, showEachPeriod)
     Reduce(function(acu, elm)
