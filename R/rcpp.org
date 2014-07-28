@@ -15,10 +15,10 @@ system.time(a[1000000])
 :    user  system elapsed 
 :       0       0       0 
 
-So I'm going to a bit of hand waving here and say that C++ is not going to be a viable replacement for indexing into a vector. I make this assertion because compiling a minimal c++ plugin for R can take (on this computer) about 3 seconds, in order to gain an improvement we'd have to make sure that C++ indexing logic is faster than R's indexing logic. Even if its twice as fast we'd still need to do over 6000 indexing operations in order to break even. Its very unlikely that it would even be 10% faster. </speculation>
+So I'm going to do a bit of hand waving here and say that C++ is not going to be a viable replacement for indexing into a vector. I make this assertion because compiling a minimal c++ plugin for R can take (on this computer) about 3 seconds, in order to gain an improvement we'd have to make sure that C++ indexing logic is faster than R's indexing logic. Even if its twice as fast we'd still need to do over many thousands of indexing operations in order to break even. Its very unlikely that it would even be 10% faster. </speculation>
 
 ** Complexity O(log n)
-So something that I think R is missing is a function to find the index of a element in a sorted list.
+Something that I think R is missing is a function to find the index of a element in a sorted list.
 How do we currently do using R built ins? like this
 #+begin_src R :results output
 a <- seq(1,30000000)
@@ -29,7 +29,7 @@ system.time(which(a == 12345678))
 :    user  system elapsed 
 :   0.332   0.052   0.386 
 
-How can c++ help? we can specialise for case its called.... binary search.
+How can c++ help? we can specialise for case the algorithm is called.... binary search.
 #+begin_src R :results output
 library('inline')
 library('Rcpp')
@@ -46,7 +46,7 @@ src <- '
     {
         const int mid = (minIndex + maxIndex) / 2;
         if (x[mid] == target)
-            return Rcpp::wrap(mid);
+            return Rcpp::wrap(mid + 1);
         else if (x[mid] < target)
             minIndex = mid + 1;
         else 
@@ -69,7 +69,7 @@ system.time(binarySearch(a, 12345678))
 : Time to run
 :    user  system elapsed 
 :   0.068   0.016   0.082 
-So the run time is much faster... but the compile time is still a killer.
+The run time is much faster... but the compile time is still a killer.
 
 After a little more research apparently you can get R to do a binary search. You perform the following steps. (installed data.table, if you haven't already got it)
 #+begin_src R :results output
@@ -77,6 +77,7 @@ library('data.table')
 a <- seq(1,30000000)
 binarySearch <- function(data, target)
 {
+#magic incantation to the R gods
     dt <- data.table(data, val = data)
     setattr(dt, "sorted", "data")
     dt[J(target), roll="nearest"]
@@ -89,7 +90,11 @@ system.time(binarySearch(a, 12345678))
 :    user  system elapsed 
 :   0.064   0.016   0.081 
 
-So this gives very similar results. When installing data.table you'll notice that its doing a lot of C++ compilation. I'd hazard a guess and say that author of data.table spotted some of the issues that we observed and has tried to fix them using C/C++.
+This gives very similar results to the C++ solution we built, but without the compilation step.
+When installing data.table you'll notice that its doing a lot of C++ compilation. I'd hazard a guess and say that author of data.table spotted some of the issues that we observed and has tried to fix them using C/C++.
+
+The thing that is note worthy here is that we needed to install data.table, which compiled some C/C++ in order to gain extra performance. This observation should be leading us to our point, the use of C/C++ is good for speeding up operations; i.e. if you want to specialise for speed the C/C++ is your best option.
+
 
 ** Complexity O(n)
 Lets take a simple operation. Here we are going to try and find the minimum element in an array.
