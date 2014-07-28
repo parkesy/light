@@ -1,8 +1,99 @@
 In this document I'm going to show the importance of integrating R and C++.
 
 * Whats the problem?
-I've heard a lot of people say that R is really really really slow. 
+I've heard a lot of people say that R is really slow and I'd like to take a some time to quickly investigate that observation.
 
+** Complexity O(1)
+The measurement tool that I have available in R doesn't provide the resolution needed to measure the time taken to get a value at an index. 
+
+#+begin_src R :results output table
+a <- rep(1, 300000000)
+system.time(a[1000000])
+#+end_src  
+
+#+RESULTS:
+:    user  system elapsed 
+:       0       0       0 
+
+So I'm going to a bit of hand waving here and say that C++ is not going to be a viable replacement for indexing into a vector. I make this assertion because compiling a minimal c++ plugin for R can take (on this computer) about 3 seconds, in order to gain an improvement we'd have to make sure that C++ indexing logic is faster than R's indexing logic. Even if its twice as fast we'd still need to do over 6000 indexing operations in order to break even. Its very unlikely that it would even be 10% faster. </speculation>
+
+** Complexity O(log n)
+So something that I think R is missing is a function to find the index of a element in a sorted list.
+How do we currently do using R built ins? like this
+#+begin_src R :results output
+a <- seq(1,30000000)
+system.time(which(a == 12345678))
+#+end_src
+
+#+RESULTS:
+:    user  system elapsed 
+:   0.332   0.052   0.386 
+
+How can c++ help? we can specialise for case its called.... binary search.
+#+begin_src R :results output
+library('inline')
+library('Rcpp')
+src <- '
+    Rcpp::NumericVector x(xs);
+
+    if (x.size() < 0)
+        return Rcpp::wrap(0);
+
+    int minIndex = 0;
+    int maxIndex = x.size();
+    const int target = Rcpp::as<int>(t);
+    while (maxIndex >= minIndex)
+    {
+        const int mid = (minIndex + maxIndex) / 2;
+        if (x[mid] == target)
+            return Rcpp::wrap(mid);
+        else if (x[mid] < target)
+            minIndex = mid + 1;
+        else 
+            maxIndex = mid - 1;
+    } 
+    return Rcpp::wrap(0);'
+cat("Time to compile\n")
+system.time(binarySearch <- cxxfunction(signature(xs="numeric", t="numberic"), body=src, plugin="Rcpp"))
+
+a <- seq(1,30000000)
+cat("\nTime to run\n")
+system.time(binarySearch(a, 12345678))
+#+end_src
+
+#+RESULTS:
+: Time to compile
+:    user  system elapsed 
+:   1.752   0.088   1.837 
+: 
+: Time to run
+:    user  system elapsed 
+:   0.068   0.016   0.082 
+So the run time is much faster... but the compile time is still a killer.
+
+After a little more research apparently you can get R to do a binary search. You perform the following steps. (installed data.table, if you haven't already got it)
+#+begin_src R :results output
+library('data.table')
+a <- seq(1,30000000)
+binarySearch <- function(data, target)
+{
+    dt <- data.table(data, val = data)
+    setattr(dt, "sorted", "data")
+    dt[J(target), roll="nearest"]
+}
+
+system.time(binarySearch(a, 12345678))
+#+end_src
+
+#+RESULTS:
+:    user  system elapsed 
+:   0.064   0.016   0.081 
+
+So this gives very similar results. When installing data.table you'll notice that its doing a lot of C++ compilation. I'd hazard a guess and say that author of data.table spotted some of the issues that we observed and has tried to fix them using C/C++.
+
+** Complexity O(n)
+Lets take a simple operation. Here we are going to try and find the minimum element in an array.
+Complexity O(n).
 #+begin_src R :results output table
 a <- rep(1, 300000000)
 system.time(min(a,1))
@@ -11,7 +102,6 @@ system.time(min(a,1))
 #+RESULTS:
 :    user  system elapsed 
 :   1.724   0.000   1.724 
-
 
 Now lets do the same in c++. 
 #+begin_src R :results output table 
@@ -32,9 +122,9 @@ system.time(minfun(a))
 :    user  system elapsed 
 :   1.440   0.000   1.439 
 
-So we had some gain in performance approximately 16% improvement. That is pure improvement if you ignore the compilation step.
+We had some gain in performance approximately 16% improvement. That is pure improvement if you ignore the compilation step.
 
-So lets not ignore that. How much is it really costing us?
+Lets not ignore that. How much is it really costing us?
 
 #+begin_src R :results output table 
 library('inline')
@@ -59,9 +149,8 @@ system.time(compPlusExec(a))
 :    user  system elapsed 
 :   3.172   0.088   3.253
 
-That is really an 86% decrease in run time. Compile time approximately 3.172 - 1.440 = 
 
-** Is R really slow?
+* Is R really slow?
 The message, from the above tests, is that if you want to run c++ and R together the functions that you are specialising with c++ need to be compiled once then set into a function and that function _needs_ to be called a lot in order to compensate for the time lost to compilation.
 
 
