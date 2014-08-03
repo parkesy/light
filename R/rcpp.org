@@ -1,58 +1,121 @@
-In this document I'm going to show the importance of integrating R and C++.
+In this document I'm going to investigate the importance of integrating R and C++.
 
 * Whats the problem?
 I've heard a lot of people say that R is really slow and I'd like to take a some time to quickly investigate that observation.
 
-#+begin_src R :session *R* :results graphics :file img/test.jpg :tangle yes :tangle src/plotter.R
-PlotComplexity <- function(name, sequence, f)
+Some basic assumptions:
+- People are not suggesting replacing R with C++. That would be silly! since R's interpreter is written in C.
+- R's interpreter is written well and has as minimal overhead as possible.
+- The conjecture is that you can improve performance by specialising some functions.
+
+** Timing
+In order to time functions for speed comparison I've had to write my own timer function. R has a built in feature called *system.time(x())* which will time how long x takes to execute. The problem with it is that its resolution is seconds. Below is my timer:
+#+begin_src C++ :flags std=c++11 :tangle yes :tangle src/timer.cpp :main no
+#include <chrono>
+#include <Rcpp.h>
+#include <R.h>
+
+RcppExport SEXP Time(SEXP function)
 {
-    wrapper <- function(itr)
-    {
-        system.time(silent <-f(itr))
-    }
+    Rcpp::Function f = function;
+    
+    std::chrono::high_resolution_clock::time_point before = 
+	    std::chrono::high_resolution_clock::now();
+    
+    f();
+    
+    std::chrono::high_resolution_clock::time_point after = 
+	    std::chrono::high_resolution_clock::now();
+    
+    std::chrono::duration<double> timeSpan = 
+        std::chrono::duration_cast<std::chrono::duration<double>>(after - before);
 
-    cat(unlist(Map(wrapper, sequence)))
-
-    t <- matrix(unlist(Map(wrapper, sequence)), ncol=5, byrow=TRUE)
- 
-    df <- data.frame(t, N=sequence);
-    plot(df$X1 ~ df$N, main=name, ylab="Time in seconds", xlab="N", type="l")
-    grid()
-}
-
-PlotComplexityAt2ToThe <- function(name, f)
-{
-    PlotComplexity(name, c(2 ^ (seq(1, 25))), f)
-}
+    return Rcpp::wrap(timeSpan.count());
+} 
 #+end_src
+
+Compiling and linking step
+#+begin_src sh :results output
+g++ -c src/timer.cpp -o src/timer.o -std=c++11 -I /home/parkesy/R/i686-pc-linux-gnu-library/3.0/Rcpp/include/ -I /usr/share/R/include/ && g++ -shared src/timer.o -o src/timer.so -O3 && echo "Done" 
+#+end_src
+
+#+RESULTS:
+: Done
+
+** Plotting the data
+I'm going to use the below function to plot the time complexity of the various functions.
+#+begin_src R :session *R* :results output :tangle yes :tangle src/plotter.R
+library(Rcpp)
+dyn.load('src/timer.so')
+
+#accepts a function with no arguments. 
+Timer <- function(f)
+{
+    .Call("Time", f)
+}
+
+empty.function <- function() {}
+dyncall.overhead.data <- unlist(Map(function(x) Timer(empty.function), seq(1,30000)))
+dyncall.overhead.nanoseconds <- summary(dyncall.overhead.data * 1000000000)[3] # median
+#+end_src
+
+
+#+begin_src R
+#wrapper.sequence <- function(itr)
+#{
+#	gc(reset=TRUE)
+#	data <- seq(1,itr)
+#	.Call("Time", function() f(data, itr))
+#}
+#
+#wrapper.no.param <- function(itr)
+#{
+#	gc(reset=TRUE)
+#	.Call("Time", f)
+#}
+#
+#PlotComplexity <- function(name, sequence, f, timingWrapper)
+#{
+#    t <- unlist(Map(timingWrapper, sequence))
+# 
+#    df <- data.frame(t, N=sequence);
+#    layout(matrix(c(1,2), ncol=2))
+#    plot((df$t * 1000000) ~ df$N, main=name, ylab="Time in microseconds", xlab="N")
+#    grid()
+#    reg <- lm((df$t * 1000000) ~ df$N)
+#    abline(reg, col="red")
+#    hist(df$t * 1000000, col="blue", main="Histogram of time", ylab="Time in microseconds", breaks=30)
+#    grid()
+#}
+#+end_src
+
+#+RESULTS:
 
 ** Complexity O(1)
 The measurement tool that I have available in R doesn't provide the resolution needed to measure the time taken to get a value at an index. 
 
-#+begin_src R :results output table
-a <- rep(1, 300000000)
-system.time(a[1000000])
-#+end_src  
+#+begin_src R :results graphics :file img/O1.jpg :session *R* :width 1000
+PlotComplexity("O(1)", seq(2, 1000) * 100, function(a, x) { })
+#+end_src
 
 #+RESULTS:
-:    user  system elapsed 
-:       0       0       0 
+[[file:img/O1.jpg]]
+
 
 So I'm going to do a bit of hand waving here and say that C++ is not going to be a viable replacement for indexing into a vector. I make this assertion because compiling a minimal c++ plugin for R can take (on this computer) about 3 seconds, in order to gain an improvement we'd have to make sure that C++ indexing logic is faster than R's indexing logic. Even if its twice as fast we'd still need to do over many thousands of indexing operations in order to break even. Its very unlikely that it would even be 10% faster. </speculation>
 
 ** Complexity O(log n)
-Something that I think R is missing is a function to find the index of a element in a sorted list.
-How do we currently do using R built ins? like this
+Something that I think R is missing is a function to find the index of a element in a sorted list. How do we currently do using R built ins? like this
 #+begin_src R :session *R* :results graphics :file img/baseRLogN.jpg :tangle yes :tangle src/baseRLogN.R 
-PlotComplexityAt2ToThe("Base functionality 0(log N)", function(x)
+PlotComplexityAt2ToThe("Base functionality 0(log N)", function(a, x)
 {
-    a <- seq(1, x)
     which(a == trunc(x/2))
 })
 #+end_src
 
 #+RESULTS:
 [[file:img/baseRLogN.jpg]]
+This looks more O(N) not log(N).
 
 How can c++ help? we can specialise for case the algorithm is called.... binary search.
 #+begin_src R :results output :results graphics :file img/rcppLongN.jpg :session *R*
@@ -79,11 +142,10 @@ src <- '
     } 
     return Rcpp::wrap(0);'
 
-#system.time(binarySearch <- cxxfunction(signature(xs="numeric", t="numberic"), body=src, plugin="Rcpp"))
+binarySearch <- cxxfunction(signature(xs="numeric", t="numberic"), body=src, plugin="Rcpp")
 
-PlotComplexityAt2ToThe("Rcpp O(log N)", function(x)
+PlotComplexityAt2ToThe("Rcpp O(log N)", function(a, x)
 {
-    a <- seq(1,x)
     binarySearch(a, trunc(x/2) + 1)
 })
 #+end_src
@@ -104,9 +166,8 @@ binarySearch <- function(data, target)
     dt[J(target), roll="nearest"]
 }
 
-PlotComplexityAt2ToThe("data.table O(log N)", function(x)
+PlotComplexityAt2ToThe("data.table O(log N)", function(a, x)
 {
-    a <- seq(1,x)
     binarySearch(a, trunc(x/2) + 1)
 })
 #+end_src
@@ -151,9 +212,8 @@ binarySearch <- function(data, target)
     return(NaN)
 }
 
-PlotComplexityAt2ToThe("R Impl O(log N)", function(x)
+PlotComplexityAt2ToThe("R Impl O(log N)", function(a, x)
 {
-    a <- seq(1, x)
     binarySearch(a, trunc(x/2) +1)
 })
 #+end_src 
@@ -241,10 +301,9 @@ function call with assignment and return value time. v2
 Lets take a simple operation. Here we are going to try and find the minimum element in an array.
 Complexity O(n).
 #+begin_src R :results graphics :session *R* :file img/baseRN.jpg 
-PlotComplexityAt2ToThe("basic O(N)", function(x)
+PlotComplexityAt2ToThe("basic O(N)", function(a, x)
 {
-    a <- rep(1, x)
-    system.time(min(a,1))
+    system.time(min(a))
 })
 #+end_src
 
@@ -262,9 +321,8 @@ src <- '
     return Rcpp::wrap(*it);'
 minfun <- cxxfunction(signature(xs="numeric"), body=src, plugin="Rcpp")
 
-PlotComplexityAt2ToThe("Rcpp O(N)", function(x)
+PlotComplexityAt2ToThe("Rcpp O(N)", function(a, x)
 {
-    a <- rep(1, x)
     minfun(a)
 })
 #+end_src  
@@ -275,28 +333,25 @@ PlotComplexityAt2ToThe("Rcpp O(N)", function(x)
 We had some gains in performance, approximately 16% speed improvement. That is am improvement if you ignore the compilation step.
 
 Lets not ignore that. How much is it really costing us?
-#+begin_src R :results output table 
+#+begin_src R :results graphics :session *R* :file img/rcppOn.jpg
 library('inline')
 library('Rcpp')
-a <- rep(1, 300000000)
 
-compPlusExec <- function(a)
+src <- '
+Rcpp::NumericVector x(xs);
+Rcpp::NumericVector::iterator it =       // iterator type
+	std::min_element(x.begin(), x.end());  // STL algo
+return Rcpp::wrap(*it);'
+minfun <- cxxfunction(signature(xs="numeric"), body=src, plugin="Rcpp")
+
+PlotComplexityAt2ToThe("Rcpp O(N)", function(a,x)
 {
-    src <- '
-    Rcpp::NumericVector x(xs);
-    Rcpp::NumericVector::iterator it =       // iterator type
-        std::min_element(x.begin(), x.end());  // STL algo
-    return Rcpp::wrap(*it);'
-    minfun <- cxxfunction(signature(xs="numeric"), body=src, plugin="Rcpp")
     minfun(a)
-}
-
-system.time(compPlusExec(a))
+})
 #+end_src
 
 #+RESULTS:
-:    user  system elapsed 
-:   3.184   0.076   3.256 
+[[file:img/rcppOn.jpg]]
 
 I bundled the compilation and the execution together so that we could get an overall timing. In the real world you'd be mad to do this. You would simply compile and assign the C++ function to a R symbol in your global environment once and once only. *Or you'd learn how to make a R package*
 

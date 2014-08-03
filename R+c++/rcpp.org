@@ -65,7 +65,7 @@ RcppExport SEXP Execute(SEXP MyFunctionName)
 
 // test 2 pass a function as a parameter and execute it
 RcppExport SEXP Execute2(SEXP someFunction)
-{
+td
     Rcpp::Function myFunction = someFunction;
     return myFunction(Rcpp::Named("x", 2));
 }
@@ -99,7 +99,7 @@ myFlippingFunction(4)
 : [1] 8
 
 
- * Registering Rcpp functions in Rcpp Environment
+* Registering Rcpp functions in Rcpp Environment
 
 Its not so clear how to do this.
 #+begin_src cpp :tangle yes :tangle cpp/Rcpp/autoLoadIntoEnv.cpp
