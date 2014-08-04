@@ -1,5 +1,7 @@
 * Function return type deduction									  :Cpp14:
-This i a feature I'm really excited about. This has been needed for a long long long time!
+This is a feature I'm really excited about. This has been needed for a long long long time! 
+
+If you use the auto key word as the return type the compiler will determine what the return type is. This is critical step forward for the readability and maintainability of template code. 
 
 
 #+begin_src C++ :flags --std=c++14
@@ -29,4 +31,4 @@ int main()
 #+RESULTS:
 : 280.1
 
-The above is ridiculously complicated to write in C++11. I've had to write/support the longer c++11 version once for a project and it is not at all pretty. 
+The above example is ridiculously complicated to write in C++11. I've had to write/support the longer c++11 version once for a project and it is not at all pretty. 
