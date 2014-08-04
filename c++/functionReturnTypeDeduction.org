@@ -1,0 +1,32 @@
+* Function return type deduction									  :Cpp14:
+This i a feature I'm really excited about. This has been needed for a long long long time!
+
+
+#+begin_src C++ :flags --std=c++14
+#include <iostream>
+
+template <typename T, typename L, typename... Args>
+auto Reduce(T operation, L&& lhs,  Args&&... args)
+{
+    return operation(lhs, Reduce(operation, args...));
+}
+
+template <typename T, typename L, typename R>
+auto Reduce(T operation, L&& lhs, R&& rhs)
+{
+    return operation(lhs, rhs);
+}
+
+int main()
+{
+    auto add = [](auto&& lhs, auto&& rhs) { return lhs + rhs; };
+    auto multi = [](auto&& lhs, auto&& rhs) { return lhs * rhs; };
+
+    std::cout << Reduce(add, 1.2, 3.7, 'a', Reduce(multi, 3, 6, 9.9)) << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 280.1
+
+The above is ridiculously complicated to write in C++11. I've had to write/support the longer c++11 version once for a project and it is not at all pretty. 

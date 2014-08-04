@@ -16,6 +16,4 @@ int main()
 }
 #+end_src
 
-#+RESULTS:
-
 So what do we have here? New syntax. Which gives the left hand side primitive or cstring to a provided user defined function. The definition looks cumbersome, but the result is ok. I'm not exactly sure why we needed this "feature". I guess its a nice to have.
