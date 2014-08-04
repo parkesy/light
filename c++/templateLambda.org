@@ -1,0 +1,25 @@
+* Generalised lambda expressions									  :Cpp14:
+One of the biggest pains with lambda pre-c++14 was that lambdas couldn't be generic. This was extraordinarily  frustrating! It meant that lambda's needed to know the types of the parameters being provided. 
+
+#+begin_src C++ :flags --std=c++14 :results output
+#include <iostream>
+#include <string>
+
+// string literal
+std::string operator "" _s(const char* str, std::size_t) { return std::string(str); }
+
+int main()
+{
+    auto lambda = [](auto rhs, auto lhs) { return rhs + lhs; };
+    
+    std::cout << lambda(1, 0.5) << std::endl;
+    std::cout << lambda("Hello "_s , "world"_s) << std::endl;
+    std::cout << lambda('a', 1) << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+: 1.5
+: Hello world
+: 98
+

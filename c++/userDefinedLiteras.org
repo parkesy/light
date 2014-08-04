@@ -1,0 +1,21 @@
+* User defined literals.											  :Cpp14:
+C++ now allows the programmer to programmatically define the meaning of user defined suffix to: integers, floating-point, character and strings.
+
+User defined literals will need to begin with an underscore.
+#+begin_src C++ :flags --std=c++14
+#include <iostream>
+
+// Literal operators 
+int operator "" _hash(const char*, std::size_t t) { return /* do something more interesting */ t; } 
+int operator "" _trunc(long double t) { return t; } 
+
+int main()
+{
+   std::cout << "something"_hash << std::endl;
+   std::cout << 3.1415_trunc << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+
+So what do we have here? New syntax. Which gives the left hand side primitive or cstring to a provided user defined function. The definition looks cumbersome, but the result is ok. I'm not exactly sure why we needed this "feature". I guess its a nice to have.
