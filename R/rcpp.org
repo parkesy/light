@@ -1,4 +1,4 @@
-In this document I'm going to investigate the importance of integrating R and C++.
+This document started out with the intent of showing that specialising R functions using C++ lead to better performance and faster report generation for data sets that are large but not "Big data" large.
 
 * Whats the problem?
 I've heard a lot of people say that R is really slow and I'd like to take a some time to quickly investigate that observation.
@@ -9,7 +9,7 @@ Some basic assumptions:
 - The conjecture is that you can improve performance by specialising some functions.
 
 ** Timing
-In order to time functions for speed comparison I've had to write my own timer function. R has a built in feature called *system.time(x())* which will time how long x takes to execute. The problem with it is that its resolution is seconds. Below is my timer:
+In order to time functions for speed comparison I've had to write my own timer function. R has a built in feature called *system.time(x())* which will time how long a function takes to execute. The problem with it is that its resolution is seconds with no decimal places. Below is my timer code:
 #+begin_src C++ :flags std=c++11 :tangle yes :tangle src/timer.cpp :main no
 #include <chrono>
 #include <Rcpp.h>
@@ -34,17 +34,18 @@ RcppExport SEXP Time(SEXP function)
 } 
 #+end_src
 
+#+RESULTS:
+
 Compiling and linking step
 #+begin_src sh :results output
-g++ -c src/timer.cpp -o src/timer.o -std=c++11 -I /home/parkesy/R/i686-pc-linux-gnu-library/3.0/Rcpp/include/ -I /usr/share/R/include/ && g++ -shared src/timer.o -o src/timer.so -O3 && echo "Done" 
+g++ -c src/timer.cpp -o src/timer.o -std=c++11 -I /home/parkesy/R/i686-pc-linux-gnu-library/3.0/Rcpp/include/ -I /usr/share/R/include/ && g++ -shared src/timer.o -o src/timer.so -Ofast && echo "Done" 
 #+end_src
-
-#+RESULTS:
-: Done
 
 ** Plotting the data
 I'm going to use the below function to plot the time complexity of the various functions.
-#+begin_src R :session *R* :results output :tangle yes :tangle src/plotter.R
+
+We need to get a baseline for the any overhead in call timing a function. We'll time how long it takes to call an empty function thirty thousand times. This will show us a baseline.
+#+begin_src R :session *R* :results graphics :file img/baseline.jpg
 library(Rcpp)
 dyn.load('src/timer.so')
 
@@ -56,37 +57,48 @@ Timer <- function(f)
 
 empty.function <- function() {}
 dyncall.overhead.data <- unlist(Map(function(x) Timer(empty.function), seq(1,30000)))
-dyncall.overhead.nanoseconds <- summary(dyncall.overhead.data * 1000000000)[3] # median
+(dyncall.overhead.nanoseconds <- summary(dyncall.overhead.data * 1000000000)[3]) # median
+
+plot(dyncall.overhead.data * 1000000, ylab="microseconds")
 #+end_src
 
+#+RESULTS:
+[[file:img/baseline.jpg]]
 
-#+begin_src R
-#wrapper.sequence <- function(itr)
-#{
-#	gc(reset=TRUE)
-#	data <- seq(1,itr)
-#	.Call("Time", function() f(data, itr))
-#}
-#
-#wrapper.no.param <- function(itr)
-#{
-#	gc(reset=TRUE)
-#	.Call("Time", f)
-#}
-#
-#PlotComplexity <- function(name, sequence, f, timingWrapper)
-#{
-#    t <- unlist(Map(timingWrapper, sequence))
-# 
-#    df <- data.frame(t, N=sequence);
-#    layout(matrix(c(1,2), ncol=2))
-#    plot((df$t * 1000000) ~ df$N, main=name, ylab="Time in microseconds", xlab="N")
-#    grid()
-#    reg <- lm((df$t * 1000000) ~ df$N)
-#    abline(reg, col="red")
-#    hist(df$t * 1000000, col="blue", main="Histogram of time", ylab="Time in microseconds", breaks=30)
-#    grid()
-#}
+#+begin_src R :session *R* :results output
+summary(dyncall.overhead.data * 1000000)
+#+end_src
+
+#+RESULTS:
+:     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+:    8.897    9.446    9.720   11.150   10.280 1801.000
+
+Extending our timer We can use Timer to time functions with no parameters. 
+#+begin_src R :session *R* 
+TimeWithSequenceAndX <- function(func, sequence, x)
+{
+    Timer(function() func(sequence, x))
+}
+
+GenerateComplexity <- function(f, Ns)
+{
+    times <- unlist(
+        Map(function(indx)
+            TimeWithSequenceAndX(f, seq(1, indx), indx), 
+        Ns)) # N complexities
+    return(data.frame(times=times * 1000000, N=Ns))  
+}
+
+PlotComplexity <- function(name, ComplexityDf)
+{
+    layout(matrix(c(1,2), ncol=2))
+    plot(df$times ~ df$N, main=name, ylab="Time in microseconds", xlab="N")
+    grid()
+    reg <- lm(df$t ~ df$N)
+    abline(reg, col="red")
+    hist(df$t * 1000000, col="blue", main="Histogram of time", ylab="Time in microseconds", breaks=30)
+    grid()
+}
 #+end_src
 
 #+RESULTS:
@@ -95,30 +107,51 @@ dyncall.overhead.nanoseconds <- summary(dyncall.overhead.data * 1000000000)[3] #
 The measurement tool that I have available in R doesn't provide the resolution needed to measure the time taken to get a value at an index. 
 
 #+begin_src R :results graphics :file img/O1.jpg :session *R* :width 1000
-PlotComplexity("O(1)", seq(2, 1000) * 100, function(a, x) { })
+df <- GenerateComplexity(function(a,x){}, seq(2,1000) * 100)
+PlotComplexity("O(1)", df)
 #+end_src
 
 #+RESULTS:
 [[file:img/O1.jpg]]
 
+#+begin_src R :session *R*
+summary(df)
+#+end_src
 
-So I'm going to do a bit of hand waving here and say that C++ is not going to be a viable replacement for indexing into a vector. I make this assertion because compiling a minimal c++ plugin for R can take (on this computer) about 3 seconds, in order to gain an improvement we'd have to make sure that C++ indexing logic is faster than R's indexing logic. Even if its twice as fast we'd still need to do over many thousands of indexing operations in order to break even. Its very unlikely that it would even be 10% faster. </speculation>
+#+RESULTS:
+| Min.   :   9.893 | Min.   :   200 |
+| 1st Qu.:  11.309 | 1st Qu.: 25150 |
+| Median :  11.718 | Median : 50100 |
+| Mean   :  13.193 | Mean   : 50100 |
+| 3rd Qu.:  12.134 | 3rd Qu.: 75050 |
+| Max.   :1208.525 | Max.   :100000 |
 
 ** Complexity O(log n)
 Something that I think R is missing is a function to find the index of a element in a sorted list. How do we currently do using R built ins? like this
-#+begin_src R :session *R* :results graphics :file img/baseRLogN.jpg :tangle yes :tangle src/baseRLogN.R 
-PlotComplexityAt2ToThe("Base functionality 0(log N)", function(a, x)
-{
-    which(a == trunc(x/2))
-})
+#+begin_src R :session *R* :results graphics :file img/baseRLogN.jpg :tangle yes :tangle src/baseRLogN.R :width 1000 
+df <- GenerateComplexity(function(a,x) 
+    which(a == (trunc(x/2) + 1)),
+    seq(2, 100003, by=1000))
+
+PlotComplexity("Base functionality O(log N)", df)
 #+end_src
 
 #+RESULTS:
 [[file:img/baseRLogN.jpg]]
-This looks more O(N) not log(N).
 
-How can c++ help? we can specialise for case the algorithm is called.... binary search.
-#+begin_src R :results output :results graphics :file img/rcppLongN.jpg :session *R*
+#+begin_src R :session *R* :results table
+summary(df)
+#+end_src 
+
+#+RESULTS:
+| Min.   :  92.72 | Min.   :     2 |
+| 1st Qu.: 501.65 | 1st Qu.: 25002 |
+| Median : 778.39 | Median : 50002 |
+| Mean   : 858.07 | Mean   : 50002 |
+| 3rd Qu.:1175.35 | 3rd Qu.: 75002 |
+| Max.   :2664.99 | Max.   :100002 |
+
+#+begin_src R :results output :results graphics :file img/rcppLongN.jpg :session *R* :width 1000
 library('inline')
 library('Rcpp')
 src <- '
@@ -144,18 +177,26 @@ src <- '
 
 binarySearch <- cxxfunction(signature(xs="numeric", t="numberic"), body=src, plugin="Rcpp")
 
-PlotComplexityAt2ToThe("Rcpp O(log N)", function(a, x)
-{
-    binarySearch(a, trunc(x/2) + 1)
-})
+df <- GenerateComplexity(function(s,x) binarySearch(s, trunc(x/2)+1) , seq(2, 100002, by=1000))
+PlotComplexity("Rcpp O(log N)", df)
 #+end_src
 
 #+RESULTS:
 [[file:img/rcppLongN.jpg]]
-The run time is much faster... but the compile time is still a killer.
 
-With some more research I saw that you _can_ get R to perform a binary search with the following steps. *installed data.table, if you don't already have it*
-#+begin_src R :results output :results graphics :file img/datatableLogN.jpg :session *R*
+#+begin_src R :session *R*
+summary(df)
+#+end_src
+
+#+RESULTS:
+| Min.   : 124.3 | Min.   :     2 |
+| 1st Qu.: 198.7 | 1st Qu.: 25002 |
+| Median : 230.4 | Median : 50002 |
+| Mean   : 279.0 | Mean   : 50002 |
+| 3rd Qu.: 274.2 | 3rd Qu.: 75002 |
+| Max.   :3637.1 | Max.   :100002 |
+
+#+begin_src R :results output :results graphics :file img/datatableLogN.jpg :session *R* :width 1000
 library('data.table')
 
 binarySearch <- function(data, target)
@@ -163,26 +204,29 @@ binarySearch <- function(data, target)
 #magic incantation to the R gods
     dt <- data.table(data, val = data)
     setattr(dt, "sorted", "data")
-    dt[J(target), roll="nearest"]
+    dt[J(trunc(target/2)+1), roll="nearest"]
 }
 
-PlotComplexityAt2ToThe("data.table O(log N)", function(a, x)
-{
-    binarySearch(a, trunc(x/2) + 1)
-})
+df <- GenerateComplexity(binarySearch, seq(2, 100002, by=1000))
+PlotComplexity("Data.table O(log N)", df)
 #+end_src
 
 #+RESULTS:
 [[file:img/datatableLogN.jpg]]
 
-Now we have very similar results to the C++ solution we built, but without the compilation step*.
+#+begin_src R :session *R*
+summary(df)
+#+end_src
 
-*When installing data.table you'll notice that its doing a lot of C++ compilation. I'd hazard a guess and say that author of data.table spotted some of the issues that we observed and has tried to fix them using C/C++.
+#+RESULTS:
+| Min.   : 927.3 | Min.   :     2 |
+| 1st Qu.: 976.3 | 1st Qu.: 25002 |
+| Median :1002.8 | Median : 50002 |
+| Mean   :1070.5 | Mean   : 50002 |
+| 3rd Qu.:1042.5 | 3rd Qu.: 75002 |
+| Max.   :2643.0 | Max.   :100002 |
 
-The thing that is note worthy here is that we needed to install data.table, which compiled some C/C++ in order to gain extra functionality. This observation leads to our point, the use of C/C++ is good for speeding up operations; i.e. if you want to specialise for speed the C/C++ is your best option. The thing that we are going to keep discovering is that compilation is a concern.
-
-What about implementing Binary search in R. That is a great idea, the implicit question here is why does R have all these vector operations and are they faster then the non vector implementation.
-#+begin_src R :results graphics :tangle yes :tangle src/baseBinarySearch.R :session *R* :file img/rImplLogN.jpg 
+#+begin_src R :results graphics :tangle yes :tangle src/baseBinarySearch.R :session *R* :file img/rImplLogN.jpg :width 1000
 binarySearch <- function(data, target)
 {
     if (length(data) <= 0)
@@ -212,106 +256,51 @@ binarySearch <- function(data, target)
     return(NaN)
 }
 
-PlotComplexityAt2ToThe("R Impl O(log N)", function(a, x)
-{
-    binarySearch(a, trunc(x/2) +1)
-})
+df <- GenerateComplexity(function(a, x) binarySearch(a, trunc(x/2) +1), seq(2, 100002, by=1000))
+PlotComplexity("R Impl O(log N)", df)
 #+end_src 
 
 #+RESULTS:
 [[file:img/rImplLogN.jpg]]
 
-Interesting result! It is faster. But why? because our other tests are measuring other things. In the data.table we are measuring the time taken to allocated new memory. This is quite obvious when you think about the order of complexity O(log N); i.e. log 30000000 = 17.2 to do 17 iterations is very quick.
-*** Quick test
-Deeper look into the cost using data.table
-#+begin_src R :results output 
-library('data.table')
-a <- seq(1,30000000)
-
-binarySearch <- function(data, target)
-{
-    #magic incantation to the R gods
-    dt <- data.table(data, val = data)
-    setattr(dt, "sorted", "data")
-    dt[J(target), roll="nearest"]
-}
-
-system.time(binarySearch(a, 12345678))
-
-
-cat("\nAllocation time\n")
-system.time(dt <- data.table(a, val = a))
-cat("\nSetting Attr time\n")
-system.time(setattr(dt, "sorted", "a"))
-cat("\nActual algo time\n")
-system.time(dt[J(12345678), roll="nearest"])
-
-cat("\nfunction call time\n")
-test <- function(data, target)
-{
-}
-system.time(test(a, 12345678))
-
-cat("\nfunction call with assignment and return value time\n")
-test <- function(data, target)
-{
-    dt <- data.table(a, val = a)
-    return(dt)
-}
-system.time(test(a, 12345678))
-
-cat("\nfunction call with assignment and return value time. v2\n")
-test <- function(data, target)
-{
-    return(data.table(a, val = a))
-}
-system.time(test(a, 12345678))
-#+end_src
+#+begin_src R :session *R*
+summary(df)
+#+end_src 
 
 #+RESULTS:
-#+begin_example
-   user  system elapsed 
-  0.052   0.028   0.080 
+| Min.   : 70.83 | Min.   :     2 |
+| 1st Qu.: 96.67 | 1st Qu.: 25002 |
+| Median :113.21 | Median : 50002 |
+| Mean   :146.09 | Mean   : 50002 |
+| 3rd Qu.:143.51 | 3rd Qu.: 75002 |
+| Max.   :438.01 | Max.   :100002 |
 
-Allocation time
-   user  system elapsed 
-  0.020   0.024   0.043 
-
-Setting Attr time
-   user  system elapsed 
-      0       0       0 
-
-Actual algo time
-   user  system elapsed 
-  0.000   0.000   0.001 
-
-function call time
-   user  system elapsed 
-      0       0       0 
-
-function call with assignment and return value time
-   user  system elapsed 
-  0.048   0.024   0.073 
-
-function call with assignment and return value time. v2
-   user  system elapsed 
-  0.028   0.016   0.042 
-#+end_example
 ** Complexity O(n)
 Lets take a simple operation. Here we are going to try and find the minimum element in an array.
 Complexity O(n).
-#+begin_src R :results graphics :session *R* :file img/baseRN.jpg 
-PlotComplexityAt2ToThe("basic O(N)", function(a, x)
-{
-    system.time(min(a))
-})
+#+begin_src R :results graphics :session *R* :file img/baseRN.jpg :width 1000
+df <- GenerateComplexity(function(a,x) min(a), seq(2, 100002, by=1000))
+PlotComplexity("Basic O(N)", df)
 #+end_src
 
 #+RESULTS:
 [[file:img/baseRN.jpg]]
 
+#+begin_src R :session *R* :results output
+summary(df)
+#+end_src 
+
+#+RESULTS:
+:      times               N         
+:  Min.   :  30.30   Min.   :     2  
+:  1st Qu.:  63.41   1st Qu.: 25002  
+:  Median : 109.71   Median : 50002  
+:  Mean   : 154.60   Mean   : 50002  
+:  3rd Qu.: 182.47   3rd Qu.: 75002  
+:  Max.   :2632.31   Max.   :100002
+
 Now lets do the same in c++. 
-#+begin_src R :results graphics :session *R* :file img/rcppN.jpg
+#+begin_src R :results graphics :session *R* :file img/rcppN.jpg :width 1000
 library('inline')
 library('Rcpp')
 src <- '
@@ -321,39 +310,26 @@ src <- '
     return Rcpp::wrap(*it);'
 minfun <- cxxfunction(signature(xs="numeric"), body=src, plugin="Rcpp")
 
-PlotComplexityAt2ToThe("Rcpp O(N)", function(a, x)
-{
-    minfun(a)
-})
+df <- GenerateComplexity(function(a,x) minfun(a), seq(2, 100002, by=1000))
+PlotComplexity("Rcpp O(N)", df) 
 #+end_src  
 
 #+RESULTS:
 [[file:img/rcppN.jpg]]
 
-We had some gains in performance, approximately 16% speed improvement. That is am improvement if you ignore the compilation step.
-
-Lets not ignore that. How much is it really costing us?
-#+begin_src R :results graphics :session *R* :file img/rcppOn.jpg
-library('inline')
-library('Rcpp')
-
-src <- '
-Rcpp::NumericVector x(xs);
-Rcpp::NumericVector::iterator it =       // iterator type
-	std::min_element(x.begin(), x.end());  // STL algo
-return Rcpp::wrap(*it);'
-minfun <- cxxfunction(signature(xs="numeric"), body=src, plugin="Rcpp")
-
-PlotComplexityAt2ToThe("Rcpp O(N)", function(a,x)
-{
-    minfun(a)
-})
-#+end_src
+#+begin_src R :session *R* :results output
+summary(df)
+#+end_src 
 
 #+RESULTS:
-[[file:img/rcppOn.jpg]]
+:      times               N         
+:  Min.   :  45.75   Min.   :     2  
+:  1st Qu.: 253.67   1st Qu.: 25002  
+:  Median : 443.64   Median : 50002  
+:  Mean   : 446.78   Mean   : 50002  
+:  3rd Qu.: 587.46   3rd Qu.: 75002  
+:  Max.   :1863.57   Max.   :100002
 
-I bundled the compilation and the execution together so that we could get an overall timing. In the real world you'd be mad to do this. You would simply compile and assign the C++ function to a R symbol in your global environment once and once only. *Or you'd learn how to make a R package*
 
 *** Summary
 We pay a bulk one off time cost for compilation then we gain a small increase in performance when running the function. 
