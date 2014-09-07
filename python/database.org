@@ -1,0 +1,57 @@
+In this document I'll be looking at setting up a simple database and getting access to it from python.
+
+* Selecting a database and initialise
+Before I even begin looking at what database to use for this tutorial I'd say that the selection of database doesn't really matter. 
+
+[[https://wiki.python.org/moin/DatabaseInterfaces][This page]], documents a lot of the database interfaces that python can readily interface with. It lists a number of general purpose database systems, data warehouse systems, databases for embedding into applications, non-relational database, record-base databases, xml databases, graph databases and even some native databases. 
+
+Things that are of interest to e are the record based, xml and graph databases.
+
+But for this tutorial I'll be using something easy like [[https://wiki.python.org/moin/SQLite][SQLite]]. The object of the tutorial is not to explore new fancy databases, simply to use one.
+
+** SQLite setup.
+Follow the instructions for installing SQLite on your localhost. Then we are going to create a table with two columns: time and message.
+
+#+header: :results raw
+#+header: :db test-sqlite.db
+#+begin_src sqlite 
+create table Aleart(NotifyAt DATETIME, Message TEXT);
+#+end_src
+
+#+RESULTS:
+
+#+header: :results raw
+#+header: :db test-sqlite.db
+#+begin_src sqlite 
+insert into Aleart values (datetime('now'), "Message test 1");
+insert into Aleart values (datetime('now'), "Message test 2");
+#+end_src
+
+#+RESULTS:
+
+#+header: :results raw
+#+header: :db test-sqlite.db
+#+begin_src sqlite 
+select * from Aleart;
+#+end_src
+
+#+RESULTS:
+"2014-09-07 05:10:29","Message test 1"
+"2014-09-07 05:10:29","Message test 2"
+
+* Python Database access
+Connection is easy as!!!! here is some more [[https://docs.python.org/2/library/sqlite3.html][documentation.]]
+
+#+begin_src python :results output 
+import sqlite3
+conn = sqlite3.connect('test-sqlite.db')
+c = conn.cursor()
+c.execute('''select * from Aleart''')
+print c.fetchone()
+print c.fetchone()
+#+end_src 
+
+#+RESULTS:
+: (u'2014-09-07 05:10:29', u'Message test 1')
+: (u'2014-09-07 05:10:29', u'Message test 2')
+

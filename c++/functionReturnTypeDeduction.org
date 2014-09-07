@@ -8,9 +8,10 @@ If you use the auto key word as the return type the compiler will determine what
 #include <iostream>
 
 template <typename T, typename L, typename... Args>
-auto Reduce(T operation, L&& lhs,  Args&&... args)
+auto Reduce(T operation, L&& lhs,  Args... args)
 {
-    return operation(lhs, Reduce(operation, args...));
+    return operation(lhs, 
+        Reduce(operation, std::forward<Args>(args)...));
 }
 
 template <typename T, typename L, typename R>

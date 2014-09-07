@@ -16,4 +16,36 @@ int main()
 }
 #+end_src
 
-So what do we have here? New syntax. Which gives the left hand side primitive or cstring to a provided user defined function. The definition looks cumbersome, but the result is ok. I'm not exactly sure why we needed this "feature". I guess its a nice to have.
+#+RESULTS:
+| 9 |
+| 3 |
+
+So what do we have here? Some new syntax. Which passes the left hand side primitive or cstring to a provided user defined function. The definition looks cumbersome, but the result is ok. I'm not exactly sure why we needed this "feature". I don't think it makes things more readable.
+
+
+Consider the following example:
+
+#+begin_src C++ :flags --std=c++14
+#include <iostream>
+
+// Literal operators 
+template <std::size_t N>
+int hash(const char (&t)[N]) { return /* do something more interesting */ N; } 
+int trunc(long double t) { return t; } 
+
+int main()
+{
+   std::cout << hash("something") << std::endl;
+   std::cout << trunc(3.1415) << std::endl;
+}
+#+end_src
+
+#+RESULTS:
+| 10 |
+|  3 |
+
+To my mind the main function is easier to read, but its really quite subjective. The other thing to note is the has function, did a few things that I didn't expect.
+
+Firstly, the actual function needed to be changed because to use template to calculate the string size. This somehow was avoided in the string literals section example.
+
+Secondly, the size of the string is incorrect in the string literals example. What happened to the appended "\0" on the back of the cstring, the counter would suggest that it doesn't exist.

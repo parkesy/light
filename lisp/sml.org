@@ -5,6 +5,4 @@ I'd like to get more used to writing ml.
 fn n => n + 1
 #+end_src
 
-#+RESULTS:
-: val it = fn : int -> int
 

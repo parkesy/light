@@ -98,7 +98,6 @@ myFlippingFunction(4)
 : [1] 4
 : [1] 8
 
-
 * Registering Rcpp functions in Rcpp Environment
 
 Its not so clear how to do this.
